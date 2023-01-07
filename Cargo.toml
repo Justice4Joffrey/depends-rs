@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "depends",
+    "depends_derives",
+    "depends_core",
+]
