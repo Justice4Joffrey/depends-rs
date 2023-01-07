@@ -1,0 +1,19 @@
+---
+source: depends_core/src/macros/leaf.rs
+assertion_line: 133
+expression: format_source(derive_leaf(input).to_string().as_str())
+---
+impl<T> ::depends::core::Named for Foo<T> {
+    fn name() -> &'static str {
+        "Foo"
+    }
+}
+impl<T> Foo<T> {
+    pub fn into_leaf(self) -> ::depends::core::LeafNodeRc<Self> {
+        ::depends::core::LeafNode::new(self)
+    }
+}
+impl<T> ::depends::core::Clean for Foo<T> {
+    fn clean(&mut self) {}
+}
+

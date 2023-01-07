@@ -1,6 +1,16 @@
 [package]
 name = "depends_core"
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
+description = "Ergonomic, performant, incremental computation between arbitrary types"
 
 [dependencies]
+proc-macro-error = "1"
+proc-macro2 = "1"
+quote = "1"
+syn = "1"
+
+[dev-dependencies]
+colored-diff = "0.2"
+insta = "1.26"

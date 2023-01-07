@@ -1,0 +1,7 @@
+[package]
+name = "maths"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+depends = { path = "../../depends", features = ["graphviz"]}

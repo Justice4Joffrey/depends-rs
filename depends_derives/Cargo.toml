@@ -2,7 +2,16 @@
 name = "depends_derives"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "Ergonomic, performant, incremental computation between arbitrary types"
 
 [dependencies]
+depends_core = {path = "../depends_core", version = "0.1.0"}
+
+proc-macro-error = "1"
+proc-macro2 = "1"
+quote = "1"
+syn = "1"
+
+[lib]
+proc-macro = true

@@ -1,14 +1,20 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use proc_macro::TokenStream;
+use proc_macro_error::proc_macro_error;
+
+#[proc_macro_error]
+#[proc_macro_derive(Leaf, attributes(depends))]
+pub fn derive_leaf(input: TokenStream) -> TokenStream {
+    depends_core::macros::derive_leaf(input.into()).into()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[proc_macro_error]
+#[proc_macro_derive(Dependee, attributes(depends))]
+pub fn derive_dependee(input: TokenStream) -> TokenStream {
+    depends_core::macros::derive_dependee(input.into()).into()
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+#[proc_macro_error]
+#[proc_macro_derive(Dependencies, attributes(depends))]
+pub fn derive_dependencies(input: TokenStream) -> TokenStream {
+    depends_core::macros::derive_dependencies(input.into()).into()
 }

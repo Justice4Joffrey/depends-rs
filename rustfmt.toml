@@ -1,0 +1,10 @@
+blank_lines_upper_bound = 1
+condense_wildcard_suffixes = true
+force_multiline_blocks = true
+format_code_in_doc_comments = true
+format_macro_matchers = true
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+reorder_impl_items = true
+use_field_init_shorthand = true
+wrap_comments = true

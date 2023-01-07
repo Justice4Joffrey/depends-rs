@@ -1,0 +1,37 @@
+---
+source: depends_core/src/macros/dependencies.rs
+assertion_line: 192
+expression: format_source(derive_dependencies(input).to_string().as_str())
+---
+pub struct FooRef<'a> {
+    bar: <Vec<usize> as ::depends::core::Resolve>::Output<'a>,
+    baz: <String as ::depends::core::Resolve>::Output<'a>,
+}
+impl Foo {
+    pub fn new(bar: Vec<usize>, baz: String) -> Self {
+        Self { bar, baz }
+    }
+}
+impl ::depends::core::Resolve for Foo {
+    type Output < 'a > = FooRef < 'a > where Self : 'a ;
+
+    fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
+        visitor.mark_edge(&self.bar);
+        visitor.mark_edge(&self.baz);
+        FooRef {
+            bar: self.bar.resolve(visitor),
+            baz: self.baz.resolve(visitor),
+        }
+    }
+
+    fn clean(&self, visitor: &mut impl ::depends::core::Visitor) {
+        self.bar.clean(visitor);
+        self.baz.clean(visitor);
+    }
+}
+impl<'a> ::depends::core::IsDirty for FooRef<'a> {
+    fn is_dirty(&self) -> bool {
+        self.bar.is_dirty() || self.baz.is_dirty()
+    }
+}
+
