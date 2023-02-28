@@ -1,13 +1,10 @@
-use crate::execution::{clean::Clean, Depends, IsDirty, Named, UpdateDependeeMut, UpdateLeafMut};
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum State {
-    Clean,
-    Dirty,
-}
+use crate::execution::{
+    clean::Clean, Depends, HashedValue, IsDirty, Named, State, UpdateDependeeMut, UpdateLeafMut,
+};
 
 pub struct NodeState<T> {
     state: State,
+    clean_hash: HashedValue,
     data: T,
 }
 
@@ -16,6 +13,7 @@ impl<T> NodeState<T> {
         Self {
             state: State::Dirty,
             data,
+            clean_hash: HashedValue::NotHashed,
         }
     }
 

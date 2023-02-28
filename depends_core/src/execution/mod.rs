@@ -16,7 +16,7 @@ pub use identifiable::{next_node_id, Identifiable};
 pub use is_dirty::IsDirty;
 pub use leaf_node::{LeafNode, LeafNodeRc};
 pub use named::Named;
-pub use node_state::{NodeState, State};
+pub use node_state::{HashedValue, NodeState, State};
 pub use resolve::Resolve;
 pub use update_dependee_mut::{Dep, UpdateDependeeMut};
 pub use update_leaf_mut::UpdateLeafMut;
