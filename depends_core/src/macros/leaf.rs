@@ -7,6 +7,8 @@ use syn::{
 
 use super::attrs::get_depends_attrs;
 
+// TODO: field attr #[depends(hash_this)]
+
 enum LeafAttr {
     CustomClean(Span, LitBool),
 }

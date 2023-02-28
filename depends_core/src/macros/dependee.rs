@@ -9,6 +9,8 @@ use syn::{
 
 use super::attrs::get_depends_attrs;
 
+// TODO: field attr #[depends(hash_this)]
+
 enum DependeeAttr {
     NodeName(Span, Ident),
     Dependencies(Span, Dependencies),
@@ -153,9 +155,6 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     //  So, the solution is _probably_ to specify a node by its _input_ NOT
     //  it's dependencies. Who knows. This is all very complicated.
 
-    // TODO: qualify the path to #ident::name() rather than repeating the name
-    // expression  when implementing Named for #node_ident
-
     if let Data::Struct(_data) = data {
         quote! {
             #vis struct #node_ident #generics {
@@ -218,28 +217,18 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                 type Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<#ident>> where Self: 'a;
 
                 fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
-                    use ::depends::core::IsDirty;
+                    use ::depends::core::{IsDirty, Clean};
 
                     if visitor.visit(self) {
-                        // TODO: cache
                         let input = self.dependencies.resolve(visitor);
                         if input.is_dirty() {
-                            let mut node = self.data.borrow_mut();
-                            // TODO: don't be dirty
-                            *node.state_mut() = ::depends::core::State::Dirty;
-                            node.data_mut().update_mut(input);
+                            let mut node_state = self.data.borrow_mut();
+                            node_state.clean();
+                            node_state.data_mut().update_mut(input);
+                            node_state.update_node_hash();
                         }
                     }
                     self.data.borrow()
-                }
-
-                fn clean(&self, visitor: &mut impl ::depends::core::Visitor) {
-                    use ::depends::core::Clean;
-
-                    if visitor.visit(self) {
-                        self.dependencies.clean(visitor);
-                        self.data.borrow_mut().clean();
-                    }
                 }
             }
 

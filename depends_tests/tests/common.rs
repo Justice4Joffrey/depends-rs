@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use depends::{
-    core::{Depends, LeafNodeRc, UpdateDependeeMut, UpdateLeafMut},
+    core::{Dependency, Depends, HashValue, LeafNodeRc, UpdateDependeeMut, UpdateLeafMut},
     derives::{Dependee, Dependencies, Leaf},
 };
 
@@ -11,6 +11,12 @@ use depends::{
 #[derive(Leaf, Default)]
 pub struct NumberInput {
     value: i32,
+}
+
+impl HashValue for NumberInput {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
 }
 
 impl UpdateLeafMut for NumberInput {
@@ -28,15 +34,15 @@ impl UpdateLeafMut for NumberInput {
 #[derive(Dependencies)]
 #[depends(ref_name = ComponentsRef)]
 pub struct Components {
-    left: LeafNodeRc<NumberInput>,
-    right: LeafNodeRc<NumberInput>,
+    left: Dependency<LeafNodeRc<NumberInput>>,
+    right: Dependency<LeafNodeRc<NumberInput>>,
 }
 
 #[derive(Dependencies)]
 #[depends(ref_name = AnswerComponentsRef)]
 pub struct AnswerComponents {
-    left: Rc<SumNode>,
-    right: Rc<MultiplyNode>,
+    left: Dependency<Rc<SumNode>>,
+    right: Dependency<Rc<MultiplyNode>>,
 }
 
 #[derive(Dependee, Default)]
@@ -45,10 +51,22 @@ pub struct Answer {
     value: i32,
 }
 
+impl HashValue for Answer {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
 #[derive(Dependee, Default)]
 #[depends(dependencies = Components, node_name = SumNode)]
 pub struct Sum {
     value: i32,
+}
+
+impl HashValue for Sum {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
 }
 
 #[derive(Dependee, Default)]
@@ -57,24 +75,30 @@ pub struct Multiply {
     value: i32,
 }
 
+impl HashValue for Multiply {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
 impl UpdateDependeeMut for Sum {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().value + right.data().value;
+        self.value = left.data().data().value + right.data().data().value;
     }
 }
 
 impl UpdateDependeeMut for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
-        self.value = left.data().value + 2 * right.data().value;
+        self.value = left.data().data().value + 2 * right.data().data().value;
     }
 }
 
 impl UpdateDependeeMut for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().value * right.data().value;
+        self.value = left.data().data().value * right.data().data().value;
     }
 }
 
@@ -90,10 +114,18 @@ pub fn my_graph() -> MyGraph {
     let b = NumberInput::default().into_leaf();
     let c = NumberInput::default().into_leaf();
 
-    let sum = Sum::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&b)));
-    let multiply = Multiply::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&c)));
-    let answer =
-        Answer::default().into_node(AnswerComponents::new(Rc::clone(&sum), Rc::clone(&multiply)));
+    let sum = Sum::default().into_node(Components::new(
+        Dependency::new(Rc::clone(&a)),
+        Dependency::new(Rc::clone(&b)),
+    ));
+    let multiply = Multiply::default().into_node(Components::new(
+        Dependency::new(Rc::clone(&a)),
+        Dependency::new(Rc::clone(&c)),
+    ));
+    let answer = Answer::default().into_node(AnswerComponents::new(
+        Dependency::new(Rc::clone(&sum)),
+        Dependency::new(Rc::clone(&multiply)),
+    ));
 
     MyGraph { a, b, c, answer }
 }

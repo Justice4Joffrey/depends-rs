@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependencies.rs
-assertion_line: 207
+assertion_line: 193
 expression: format_source(derive_dependencies(input).to_string().as_str())
 ---
 pub struct CustomRefName<'a> {
@@ -19,10 +19,6 @@ impl ::depends::core::Resolve for Foo {
         CustomRefName {
             bar: self.bar.resolve(visitor),
         }
-    }
-
-    fn clean(&self, visitor: &mut impl ::depends::core::Visitor) {
-        self.bar.clean(visitor);
     }
 }
 impl<'a> ::depends::core::IsDirty for CustomRefName<'a> {

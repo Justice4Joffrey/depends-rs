@@ -1,8 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
+use super::{Clean, ResolveState};
 use crate::execution::{
-    identifiable::next_node_id, Clean, Dep, Identifiable, IsDirty, Named, NodeState, Resolve,
-    State, UpdateLeafMut, Visitor,
+    identifiable::next_node_id, Dep, Identifiable, Named, NodeState, Resolve,
+    UpdateLeafMut, Visitor,
 };
 
 pub type LeafNodeRc<T> = Rc<LeafNode<T>>;
@@ -44,8 +45,12 @@ where
     /// The public interface to provide data to mutate the inner leaf.
     pub fn update(&self, input: T::Input) {
         let mut node_state = self.data.borrow_mut();
+        // Flush any changes since it was resolved.
+        if node_state.state() == ResolveState::Resolving {
+            node_state.clean();
+        }
+        *(node_state.state_mut()) = ResolveState::Updating;
         node_state.data_mut().update_mut(input);
-        *node_state.state_mut() = State::Dirty;
     }
 }
 
@@ -56,18 +61,20 @@ where
     type Output<'a> = Dep<'a, T> where Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> Self::Output<'_> {
-        visitor.visit(self);
+        if visitor.visit(self) {
+            let mut node_state = self.data.borrow_mut();
+            // Ensures `update` changes are only flushed once.
+            match node_state.state() {
+                ResolveState::Updating => *node_state.state_mut() = ResolveState::Resolving,
+                ResolveState::Resolving => {
+                    node_state.clean();
+                    *node_state.state_mut() = ResolveState::Resolved
+                }
+                ResolveState::Resolved => {}
+            }
+            // The hash is only set when this node is being read.
+            node_state.update_node_hash();
+        }
         self.data.borrow()
-    }
-
-    fn clean(&self, visitor: &mut impl Visitor) {
-        visitor.visit(self);
-        self.data.borrow_mut().clean()
-    }
-}
-
-impl<T> IsDirty for LeafNode<T> {
-    fn is_dirty(&self) -> bool {
-        self.data.borrow().state() == State::Dirty
     }
 }

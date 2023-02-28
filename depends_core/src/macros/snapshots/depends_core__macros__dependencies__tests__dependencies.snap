@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependencies.rs
-assertion_line: 192
+assertion_line: 178
 expression: format_source(derive_dependencies(input).to_string().as_str())
 ---
 pub struct FooRef<'a> {
@@ -22,11 +22,6 @@ impl ::depends::core::Resolve for Foo {
             bar: self.bar.resolve(visitor),
             baz: self.baz.resolve(visitor),
         }
-    }
-
-    fn clean(&self, visitor: &mut impl ::depends::core::Visitor) {
-        self.bar.clean(visitor);
-        self.baz.clean(visitor);
     }
 }
 impl<'a> ::depends::core::IsDirty for FooRef<'a> {

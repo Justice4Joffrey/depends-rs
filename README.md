@@ -135,3 +135,16 @@ digraph G {
 The graph in the above example is rendered below.
 
 ![Alt text](./sum.svg)
+
+## Current Status
+
+This crate should be considered a Proof Of Concept only and treated with huge amounts of scepticism and distrust.
+
+The guarantees we would _like_ to offer, before considering this crate production-worthy are:
+
+- Determinism of output given any sequence of inputs and actions.
+- Graphs cannot yield different results between calls to `resolve` without a change in input, other than when `Clean` has been implemented incorrectly.
+- Correctness of the internal caching logic.
+
+Feel free to experiment with the crate, apply it to your problems and pass on any feedback you have.
+

@@ -92,17 +92,11 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
         let mut field_args = TokenStream::new();
         let mut field_new_args = TokenStream::new();
         let mut field_resolves = TokenStream::new();
-        let mut field_cleans = TokenStream::new();
         let mut field_edges = TokenStream::new();
         let mut dirty_field_args = Vec::<TokenStream>::new();
-        data.fields.into_iter().for_each(
-            |Field {
-                 attrs: _,
-                 vis,
-                 ident,
-                 colon_token: _,
-                 ty,
-             }| {
+        data.fields
+            .into_iter()
+            .for_each(|Field { vis, ident, ty, .. }| {
                 let ident = ident.expect("struct fields must be named.");
                 fields.extend(quote! {
                     #vis #ident: <#ty as ::depends::core::Resolve>::Output<'a>,
@@ -116,17 +110,13 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
                 field_resolves.extend(quote! {
                     #ident: self.#ident.resolve(visitor),
                 });
-                field_cleans.extend(quote! {
-                   self.#ident.clean(visitor);
-                });
                 field_edges.extend(quote! {
                     visitor.mark_edge(&self.#ident);
                 });
                 dirty_field_args.push(quote! {
                     self.#ident.is_dirty()
                 });
-            },
-        );
+            });
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
@@ -152,10 +142,6 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
                     #ref_ident {
                         #field_resolves
                     }
-                }
-
-                fn clean(&self, visitor: &mut impl ::depends::core::Visitor) {
-                    #field_cleans
                 }
             }
 

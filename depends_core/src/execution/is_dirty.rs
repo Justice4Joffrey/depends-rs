@@ -1,5 +1,6 @@
-/// For any individual or collection of nodes, this is used to check whether
-/// dependent nodes should recalculate their internal state.
+/// For any dependee's dependencies (or single dependency), this is used to
+/// check whether previously observed values have changed, indicating its stored
+/// value needs to be recomputed.
 pub trait IsDirty {
     fn is_dirty(&self) -> bool;
 }
