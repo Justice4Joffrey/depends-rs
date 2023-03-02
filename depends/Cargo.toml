@@ -15,4 +15,5 @@ depends_derives = {path = "../depends_derives", version = "0.1.0"}
 [features]
 default = []
 graphviz = []
+hashbrown = ["depends_core/hashbrown"]
 

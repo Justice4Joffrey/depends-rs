@@ -2,16 +2,16 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
-    parse2,
-    token::Lt,
-    Data, DeriveInput, Generics, LitBool, Token,
+    parse2, Data, DeriveInput, LitBool, Token, Type,
 };
 
 use super::attrs::get_depends_attrs;
 
+// TODO: field attr #[depends(hash_this)]
+
 enum DependeeAttr {
     NodeName(Span, Ident),
-    Dependencies(Span, Dependencies),
+    Dependencies(Span, Type),
     CustomClean(Span, LitBool),
 }
 
@@ -33,27 +33,9 @@ impl Parse for DependeeAttr {
     }
 }
 
-struct Dependencies {
-    ident: Ident,
-    generics: Option<Generics>,
-}
-
-impl Parse for Dependencies {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<Ident>()?;
-        let lookahead = input.lookahead1();
-        let generics = if lookahead.peek(Lt) {
-            Some(input.parse()?)
-        } else {
-            None
-        };
-        Ok(Self { ident, generics })
-    }
-}
-
 struct DependeeParsedAttrs {
     node_name: Option<Ident>,
-    dependencies: Option<Dependencies>,
+    dependencies: Option<Type>,
     custom_clean: Option<bool>,
 }
 
@@ -106,14 +88,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     let name = ident.to_string();
 
     // parse the attributes
-    let (
-        node_ident,
-        Dependencies {
-            ident: dep_ident,
-            generics: dep_generics,
-        },
-        custom_clean,
-    ) = {
+    let (node_ident, dependencies_ty, custom_clean) = {
         let attrs = get_depends_attrs(attrs)
             .expect("attributes must be in the form \"#[depends(... = ..., ...)]\"");
         let parsed: DependeeParsedAttrs = attrs.try_into().unwrap();
@@ -153,23 +128,20 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     //  So, the solution is _probably_ to specify a node by its _input_ NOT
     //  it's dependencies. Who knows. This is all very complicated.
 
-    // TODO: qualify the path to #ident::name() rather than repeating the name
-    // expression  when implementing Named for #node_ident
-
     if let Data::Struct(_data) = data {
         quote! {
             #vis struct #node_ident #generics {
-                dependencies: #dep_ident #dep_generics,
+                dependencies: #dependencies_ty,
                 data: ::std::cell::RefCell<::depends::core::NodeState<#ident #generics>>,
                 id: usize
             }
 
             impl #impl_generics #node_ident #ty_generics #where_clause {
-                pub fn new(dependencies: #dep_ident #dep_generics, data: #ident #ty_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
+                pub fn new(dependencies: #dependencies_ty, data: #ident #ty_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
                     Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
                 }
 
-                pub fn new_with_id(dependencies: #dep_ident #dep_generics, data: #ident #ty_generics, id: usize) -> ::std::rc::Rc<#node_ident #ty_generics> {
+                pub fn new_with_id(dependencies: #dependencies_ty, data: #ident #ty_generics, id: usize) -> ::std::rc::Rc<#node_ident #ty_generics> {
                     ::std::rc::Rc::new(
                         #node_ident {
                             dependencies,
@@ -187,7 +159,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
             }
 
             impl #impl_generics #ident #ty_generics #where_clause {
-                pub fn into_node(self, dependencies: #dep_ident #dep_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
+                pub fn into_node(self, dependencies: #dependencies_ty) -> ::std::rc::Rc<#node_ident #ty_generics> {
                     #node_ident::new(
                         dependencies,
                         self,
@@ -209,7 +181,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
 
             impl #impl_generics ::depends::core::Depends for #ident #ty_generics #where_clause {
                 type Input<'a>
-                = <#dep_ident #dep_generics as ::depends::core::Resolve>::Output<'a>
+                = <#dependencies_ty as ::depends::core::Resolve>::Output<'a>
                     where
                         Self: 'a;
             }
@@ -218,28 +190,20 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                 type Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<#ident>> where Self: 'a;
 
                 fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
-                    use ::depends::core::IsDirty;
+                    use ::depends::core::{IsDirty, Clean};
 
+                    visitor.touch(self);
                     if visitor.visit(self) {
-                        // TODO: cache
                         let input = self.dependencies.resolve(visitor);
                         if input.is_dirty() {
-                            let mut node = self.data.borrow_mut();
-                            // TODO: don't be dirty
-                            *node.state_mut() = ::depends::core::State::Dirty;
-                            node.data_mut().update_mut(input);
+                            let mut node_state = self.data.borrow_mut();
+                            node_state.clean();
+                            node_state.data_mut().update_mut(input);
+                            node_state.update_node_hash();
                         }
                     }
+                    visitor.leave(self);
                     self.data.borrow()
-                }
-
-                fn clean(&self, visitor: &mut impl ::depends::core::Visitor) {
-                    use ::depends::core::Clean;
-
-                    if visitor.visit(self) {
-                        self.dependencies.clean(visitor);
-                        self.data.borrow_mut().clean();
-                    }
                 }
             }
 
@@ -298,6 +262,20 @@ mod tests {
         };
         assert_snapshot!(
             "dependee_generics_custom_clean",
+            format_source(derive_dependee(input).to_string().as_str())
+        );
+    }
+
+    #[test]
+    fn test_dependee_single_dependency() {
+        let input = parse_quote! {
+            #[depends(dependencies = Dependency<Rc<SomeNode<Bar>>>, custom_clean = true)]
+            struct Foo<T> {
+                bar: Vec<usize>
+            }
+        };
+        assert_snapshot!(
+            "dependee_single_dependency",
             format_source(derive_dependee(input).to_string().as_str())
         );
     }

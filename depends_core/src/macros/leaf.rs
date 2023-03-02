@@ -7,6 +7,8 @@ use syn::{
 
 use super::attrs::get_depends_attrs;
 
+// TODO: field attr #[depends(hash_this)]
+
 enum LeafAttr {
     CustomClean(Span, LitBool),
 }
@@ -88,7 +90,7 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
             }
 
             impl #impl_generics #ident #ty_generics #where_clause {
-                pub fn into_leaf(self) -> ::depends::core::LeafNodeRc<Self> {
+                pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
                     ::depends::core::LeafNode::new(self)
                 }
             }

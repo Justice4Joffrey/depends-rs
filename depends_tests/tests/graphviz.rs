@@ -10,16 +10,16 @@ fn test_graphviz() {
     assert_eq!(
         r#"
 digraph G {
-  5[label="Answer"];
-  3[label="Sum"];
   0[label="NumberInput"];
   1[label="NumberInput"];
-  4[label="Multiply"];
   2[label="NumberInput"];
+  3[label="Sum"];
   0 -> 3;
   1 -> 3;
+  4[label="Multiply"];
   0 -> 4;
   2 -> 4;
+  5[label="Answer"];
   3 -> 5;
   4 -> 5;
 }

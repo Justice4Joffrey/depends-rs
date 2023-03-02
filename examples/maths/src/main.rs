@@ -1,8 +1,8 @@
 use std::{collections::HashSet, rc::Rc};
 
 use depends::{
-    core::{Depends, LeafNodeRc, Resolve, UpdateDependeeMut, UpdateLeafMut},
-    derives::{Dependee, Dependencies, Leaf},
+    core::{Dependency, Depends, HashValue, LeafNode, Resolve, UpdateDependee, UpdateLeaf},
+    derives::{dependencies, Dependee, Leaf},
     graphviz::GraphvizVisitor,
 };
 
@@ -12,7 +12,13 @@ pub struct NumberInput {
     value: i32,
 }
 
-impl UpdateLeafMut for NumberInput {
+impl HashValue for NumberInput {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
+impl UpdateLeaf for NumberInput {
     type Input = i32;
 
     fn update_mut(&mut self, input: Self::Input) {
@@ -23,19 +29,17 @@ impl UpdateLeafMut for NumberInput {
 }
 
 /// Any *derived* node must state its dependencies. If there are more than one,
-/// this must be wrapped in a struct which derives [Dependencies] as shown.
-#[derive(Dependencies)]
-#[depends(ref_name = ComponentsRef)]
+/// this must be wrapped in a struct using the [dependencies] attribute.
+#[dependencies]
 pub struct Components {
-    left: LeafNodeRc<NumberInput>,
-    right: LeafNodeRc<NumberInput>,
+    left: LeafNode<NumberInput>,
+    right: LeafNode<NumberInput>,
 }
 
-#[derive(Dependencies)]
-#[depends(ref_name = AnswerComponentsRef)]
+#[dependencies]
 pub struct AnswerComponents {
-    left: Rc<SumNode>,
-    right: Rc<MultiplyNode>,
+    left: SumNode,
+    right: SquareNode,
 }
 
 #[derive(Dependee, Default)]
@@ -44,10 +48,35 @@ pub struct Answer {
     value: i32,
 }
 
+impl HashValue for Answer {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
 #[derive(Dependee, Default)]
 #[depends(dependencies = Components, node_name = SumNode)]
 pub struct Sum {
     value: i32,
+}
+
+impl HashValue for Sum {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
+// An example of how a single dependency can be used.
+#[derive(Dependee, Default)]
+#[depends(dependencies = Dependency<Rc<MultiplyNode>>, node_name = SquareNode)]
+pub struct Square {
+    value: i32,
+}
+
+impl HashValue for Square {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
 }
 
 #[derive(Dependee, Default)]
@@ -56,31 +85,44 @@ pub struct Multiply {
     value: i32,
 }
 
-impl UpdateDependeeMut for Sum {
-    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
-        let ComponentsRef { left, right } = input;
-        self.value = left.data().value + right.data().value;
+impl HashValue for Multiply {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
     }
 }
 
-impl UpdateDependeeMut for Answer {
+impl UpdateDependee for Square {
+    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
+        self.value = input.data().data().value.pow(2);
+    }
+}
+
+impl UpdateDependee for Sum {
+    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
+        let ComponentsRef { left, right } = input;
+        self.value = left.data().data().value + right.data().data().value;
+    }
+}
+
+impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
-        self.value = left.data().value + 2 * right.data().value;
+        // TODO oppressive dereferencing
+        self.value = left.data().data().value + 2 * right.data().data().value;
     }
 }
 
-impl UpdateDependeeMut for Multiply {
+impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().value * right.data().value;
+        self.value = left.data().data().value * right.data().data().value;
     }
 }
 
 struct MyGraph {
-    a: LeafNodeRc<NumberInput>,
-    b: LeafNodeRc<NumberInput>,
-    c: LeafNodeRc<NumberInput>,
+    a: Rc<LeafNode<NumberInput>>,
+    b: Rc<LeafNode<NumberInput>>,
+    c: Rc<LeafNode<NumberInput>>,
     answer: Rc<AnswerNode>,
 }
 
@@ -91,29 +133,33 @@ fn main() {
 
     let sum = Sum::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&b)));
     let multiply = Multiply::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&c)));
+    let square = Square::default().into_node(Dependency::new(Rc::clone(&multiply)));
     let answer =
-        Answer::default().into_node(AnswerComponents::new(Rc::clone(&sum), Rc::clone(&multiply)));
+        Answer::default().into_node(AnswerComponents::new(Rc::clone(&sum), Rc::clone(&square)));
 
     let graph = MyGraph { a, b, c, answer };
 
     // check the graphviz of this graph is as expected.
     let mut gv_visitor = GraphvizVisitor::new();
     graph.answer.resolve(&mut gv_visitor);
+
     assert_eq!(
         r#"
 digraph G {
-  5[label="Answer"];
-  3[label="Sum"];
   0[label="NumberInput"];
   1[label="NumberInput"];
-  4[label="Multiply"];
   2[label="NumberInput"];
+  3[label="Sum"];
   0 -> 3;
   1 -> 3;
+  4[label="Multiply"];
   0 -> 4;
   2 -> 4;
-  3 -> 5;
+  5[label="Square"];
   4 -> 5;
+  6[label="Answer"];
+  3 -> 6;
+  5 -> 6;
 }
 "#
         .trim(),
@@ -127,12 +173,9 @@ digraph G {
     let mut visitor = HashSet::<usize>::new();
 
     // we can now sum the latest values!
-    assert_eq!(graph.answer.resolve(&mut visitor).data().value, 42);
+    assert_eq!(graph.answer.resolve_root(&mut visitor).data().value, 42);
 
     graph.c.update(2);
 
-    // between each run, the visitor must be cleared to visit all nodes.
-    visitor.clear();
-
-    assert_eq!(graph.answer.resolve(&mut visitor).data().value, 202);
+    assert_eq!(graph.answer.resolve_root(&mut visitor).data().value, 12842);
 }

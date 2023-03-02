@@ -3,8 +3,8 @@
 use std::rc::Rc;
 
 use depends::{
-    core::{Depends, LeafNodeRc, UpdateDependeeMut, UpdateLeafMut},
-    derives::{Dependee, Dependencies, Leaf},
+    core::{Dependency, Depends, HashValue, LeafNode, UpdateDependee, UpdateLeaf},
+    derives::{dependencies, Dependee, Leaf},
 };
 
 /// A number which can be edited from the _outside_ i.e. has _no_ dependencies.
@@ -13,7 +13,13 @@ pub struct NumberInput {
     value: i32,
 }
 
-impl UpdateLeafMut for NumberInput {
+impl HashValue for NumberInput {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
+impl UpdateLeaf for NumberInput {
     type Input = i32;
 
     fn update_mut(&mut self, input: Self::Input) {
@@ -24,19 +30,17 @@ impl UpdateLeafMut for NumberInput {
 }
 
 /// Any *derived* node must state its dependencies. If there are more than one,
-/// this must be wrapped in a struct which derives [Dependencies] as shown.
-#[derive(Dependencies)]
-#[depends(ref_name = ComponentsRef)]
+/// this must be wrapped in a struct marked as `#[dependencies]` as shown.
+#[dependencies]
 pub struct Components {
-    left: LeafNodeRc<NumberInput>,
-    right: LeafNodeRc<NumberInput>,
+    left: LeafNode<NumberInput>,
+    right: LeafNode<NumberInput>,
 }
 
-#[derive(Dependencies)]
-#[depends(ref_name = AnswerComponentsRef)]
+#[dependencies]
 pub struct AnswerComponents {
-    left: Rc<SumNode>,
-    right: Rc<MultiplyNode>,
+    left: SumNode,
+    right: MultiplyNode,
 }
 
 #[derive(Dependee, Default)]
@@ -45,10 +49,34 @@ pub struct Answer {
     value: i32,
 }
 
+impl HashValue for Answer {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
+#[derive(Dependee, Default)]
+#[depends(dependencies = Dependency<Rc<LeafNode<NumberInput>>>, node_name = SquareNode)]
+pub struct Square {
+    value: i32,
+}
+
+impl HashValue for Square {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
 #[derive(Dependee, Default)]
 #[depends(dependencies = Components, node_name = SumNode)]
 pub struct Sum {
     value: i32,
+}
+
+impl HashValue for Sum {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
 }
 
 #[derive(Dependee, Default)]
@@ -57,31 +85,43 @@ pub struct Multiply {
     value: i32,
 }
 
-impl UpdateDependeeMut for Sum {
-    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
-        let ComponentsRef { left, right } = input;
-        self.value = left.data().value + right.data().value;
+impl HashValue for Multiply {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
     }
 }
 
-impl UpdateDependeeMut for Answer {
+impl UpdateDependee for Square {
+    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
+        self.value = input.data().data().value.pow(2);
+    }
+}
+
+impl UpdateDependee for Sum {
+    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
+        let ComponentsRef { left, right } = input;
+        self.value = left.data().data().value + right.data().data().value;
+    }
+}
+
+impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
-        self.value = left.data().value + 2 * right.data().value;
+        self.value = left.data().data().value + 2 * right.data().data().value;
     }
 }
 
-impl UpdateDependeeMut for Multiply {
+impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().value * right.data().value;
+        self.value = left.data().data().value * right.data().data().value;
     }
 }
 
 pub struct MyGraph {
-    pub a: LeafNodeRc<NumberInput>,
-    pub b: LeafNodeRc<NumberInput>,
-    pub c: LeafNodeRc<NumberInput>,
+    pub a: Rc<LeafNode<NumberInput>>,
+    pub b: Rc<LeafNode<NumberInput>>,
+    pub c: Rc<LeafNode<NumberInput>>,
     pub answer: Rc<AnswerNode>,
 }
 

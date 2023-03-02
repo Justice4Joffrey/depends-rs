@@ -6,5 +6,5 @@ pub mod helpers;
 mod leaf;
 
 pub use dependee::derive_dependee;
-pub use dependencies::derive_dependencies;
+pub use dependencies::dependencies_attr;
 pub use leaf::derive_leaf;

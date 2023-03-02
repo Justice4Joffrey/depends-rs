@@ -1,14 +1,14 @@
 ---
-source: depends_core/src/macros/dependencies.rs
-assertion_line: 124
-expression: "format_source(dependencies_attr(TokenStream::new(),\n                input).to_string().as_str())"
+source: depends_core/src/macros/dependencies_new.rs
+assertion_line: 271
+expression: "format_source(derive_dependencies_new(TokenStream::new(),\n                input).to_string().as_str())"
 ---
-struct Components {
+pub struct Components {
     node1: Dependency<Rc<Node1>>,
     node2: Dependency<Rc<Node2>>,
     node3: Dependency<Rc<Node3>>,
 }
-struct ComponentsRef<'a> {
+pub struct ComponentsRef<'a> {
     node1: <Dependency<Rc<Node1>> as ::depends::core::Resolve>::Output<'a>,
     node2: <Dependency<Rc<Node2>> as ::depends::core::Resolve>::Output<'a>,
     node3: <Dependency<Rc<Node3>> as ::depends::core::Resolve>::Output<'a>,
@@ -26,6 +26,9 @@ impl ::depends::core::Resolve for Components {
     type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
 
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
+        visitor.mark_edge(&self.node1);
+        visitor.mark_edge(&self.node2);
+        visitor.mark_edge(&self.node3);
         ComponentsRef {
             node1: self.node1.resolve(visitor),
             node2: self.node2.resolve(visitor),

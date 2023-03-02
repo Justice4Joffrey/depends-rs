@@ -6,11 +6,16 @@ edition = "2021"
 description = "Ergonomic, performant, incremental computation between arbitrary types"
 
 [dependencies]
+hashbrown = { version = "0.13", optional = true}
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
-syn = "1"
+syn = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 colored-diff = "0.2"
 insta = "1.26"
+
+[features]
+default = []
+hashbrown = ["dep:hashbrown"]
