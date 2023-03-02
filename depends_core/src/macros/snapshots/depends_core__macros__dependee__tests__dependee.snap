@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependee.rs
-assertion_line: 275
+assertion_line: 235
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 pub struct SomeName {
@@ -49,6 +49,7 @@ impl ::depends::core::Resolve for SomeName {
 
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         use ::depends::core::{Clean, IsDirty};
+        visitor.touch(self);
         if visitor.visit(self) {
             let input = self.dependencies.resolve(visitor);
             if input.is_dirty() {
@@ -58,6 +59,7 @@ impl ::depends::core::Resolve for SomeName {
                 node_state.update_node_hash();
             }
         }
+        visitor.leave(self);
         self.data.borrow()
     }
 }

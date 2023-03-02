@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/leaf.rs
-assertion_line: 133
+assertion_line: 135
 expression: format_source(derive_leaf(input).to_string().as_str())
 ---
 impl<T> ::depends::core::Named for Foo<T> {
@@ -9,7 +9,7 @@ impl<T> ::depends::core::Named for Foo<T> {
     }
 }
 impl<T> Foo<T> {
-    pub fn into_leaf(self) -> ::depends::core::LeafNodeRc<Self> {
+    pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
         ::depends::core::LeafNode::new(self)
     }
 }

@@ -11,10 +11,10 @@ use crate::execution::Named;
 /// want to provide dependent nodes an accessor to know which of those have
 /// changed since this node was last resolved. _Correct_ implementation of that
 /// pattern requires implementation of [Clean](super::Clean), alongside
-/// [UpdateDependeeMut](super::UpdateDependeeMut).
+/// [UpdateDependee](super::UpdateDependee).
 ///
 /// ```
-/// # use depends_core::execution::{Clean, HashValue, Named, NodeHash, UpdateLeafMut};
+/// # use depends_core::execution::{Clean, HashValue, Named, NodeHash, UpdateLeaf};
 /// #[derive(Default)]
 /// pub struct MyNode {
 ///     // Appends every item to this collection.
@@ -30,7 +30,7 @@ use crate::execution::Named;
 /// #     fn hash_value(&self) -> NodeHash { unimplemented!() }
 /// # }
 ///
-/// impl UpdateLeafMut for MyNode {
+/// impl UpdateLeaf for MyNode {
 ///     type Input = i32;
 ///
 ///     fn update_mut(&mut self, input: Self::Input) {
@@ -89,7 +89,7 @@ use crate::execution::Named;
 /// values would be displayed to dependent nodes _after_ this node had been
 /// cleaned. This is an unsound implementation, which violates the caching logic
 /// of `depends`.
-pub trait UpdateLeafMut: Named + HashValue + Clean {
+pub trait UpdateLeaf: Named + HashValue + Clean {
     type Input;
 
     fn update_mut(&mut self, input: Self::Input);

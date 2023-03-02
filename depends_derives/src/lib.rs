@@ -14,7 +14,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_error]
-#[proc_macro_derive(Dependencies, attributes(depends))]
-pub fn derive_dependencies(input: TokenStream) -> TokenStream {
-    depends_core::macros::derive_dependencies(input.into()).into()
+#[proc_macro_attribute]
+pub fn dependencies(args: TokenStream, input: TokenStream) -> TokenStream {
+    depends_core::macros::dependencies_attr(args.into(), input.into()).into()
 }

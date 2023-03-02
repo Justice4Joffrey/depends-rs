@@ -1,5 +1,5 @@
 use super::NodeHash;
-use crate::execution::{Clean, Depends, HashValue, Named, UpdateDependeeMut, UpdateLeafMut};
+use crate::execution::{Clean, Depends, HashValue, Named, UpdateDependee, UpdateLeaf};
 
 // TODO: this is only applicable to leaves, therefore should be exported
 /// Used to ensure that pending data is resolved at most once between calls to
@@ -17,7 +17,7 @@ pub enum ResolveState {
 
 pub struct NodeState<T> {
     state: ResolveState,
-    /// A value representing the unique state of the data (e.g. the Hash).
+    /// A value representing the unique state of the data (i.e. the Hash).
     node_hash: NodeHash,
     data: T,
 }
@@ -60,9 +60,9 @@ impl<T: HashValue> NodeState<T> {
     }
 }
 
-impl<T> UpdateDependeeMut for NodeState<T>
+impl<T> UpdateDependee for NodeState<T>
 where
-    T: UpdateDependeeMut,
+    T: UpdateDependee,
 {
     fn update_mut(&mut self, input: Self::Input<'_>) {
         self.data.update_mut(input)
@@ -76,9 +76,9 @@ where
     type Input<'a> = T::Input<'a> where Self: 'a;
 }
 
-impl<T> UpdateLeafMut for NodeState<T>
+impl<T> UpdateLeaf for NodeState<T>
 where
-    T: UpdateLeafMut,
+    T: UpdateLeaf,
 {
     type Input = T::Input;
 

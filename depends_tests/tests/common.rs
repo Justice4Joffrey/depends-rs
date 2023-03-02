@@ -3,8 +3,8 @@
 use std::rc::Rc;
 
 use depends::{
-    core::{Dependency, Depends, HashValue, LeafNodeRc, UpdateDependeeMut, UpdateLeafMut},
-    derives::{Dependee, Dependencies, Leaf},
+    core::{Dependency, Depends, HashValue, LeafNode, UpdateDependee, UpdateLeaf},
+    derives::{dependencies, Dependee, Leaf},
 };
 
 /// A number which can be edited from the _outside_ i.e. has _no_ dependencies.
@@ -19,7 +19,7 @@ impl HashValue for NumberInput {
     }
 }
 
-impl UpdateLeafMut for NumberInput {
+impl UpdateLeaf for NumberInput {
     type Input = i32;
 
     fn update_mut(&mut self, input: Self::Input) {
@@ -30,19 +30,17 @@ impl UpdateLeafMut for NumberInput {
 }
 
 /// Any *derived* node must state its dependencies. If there are more than one,
-/// this must be wrapped in a struct which derives [Dependencies] as shown.
-#[derive(Dependencies)]
-#[depends(ref_name = ComponentsRef)]
+/// this must be wrapped in a struct marked as `#[dependencies]` as shown.
+#[dependencies]
 pub struct Components {
-    left: Dependency<LeafNodeRc<NumberInput>>,
-    right: Dependency<LeafNodeRc<NumberInput>>,
+    left: LeafNode<NumberInput>,
+    right: LeafNode<NumberInput>,
 }
 
-#[derive(Dependencies)]
-#[depends(ref_name = AnswerComponentsRef)]
+#[dependencies]
 pub struct AnswerComponents {
-    left: Dependency<Rc<SumNode>>,
-    right: Dependency<Rc<MultiplyNode>>,
+    left: SumNode,
+    right: MultiplyNode,
 }
 
 #[derive(Dependee, Default)]
@@ -52,6 +50,18 @@ pub struct Answer {
 }
 
 impl HashValue for Answer {
+    fn hash_value(&self) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed(self.value as usize)
+    }
+}
+
+#[derive(Dependee, Default)]
+#[depends(dependencies = Dependency<Rc<LeafNode<NumberInput>>>, node_name = SquareNode)]
+pub struct Square {
+    value: i32,
+}
+
+impl HashValue for Square {
     fn hash_value(&self) -> depends::core::NodeHash {
         depends::core::NodeHash::Hashed(self.value as usize)
     }
@@ -81,21 +91,27 @@ impl HashValue for Multiply {
     }
 }
 
-impl UpdateDependeeMut for Sum {
+impl UpdateDependee for Square {
+    fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
+        self.value = input.data().data().value.pow(2);
+    }
+}
+
+impl UpdateDependee for Sum {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
         self.value = left.data().data().value + right.data().data().value;
     }
 }
 
-impl UpdateDependeeMut for Answer {
+impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
         self.value = left.data().data().value + 2 * right.data().data().value;
     }
 }
 
-impl UpdateDependeeMut for Multiply {
+impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
         self.value = left.data().data().value * right.data().data().value;
@@ -103,9 +119,9 @@ impl UpdateDependeeMut for Multiply {
 }
 
 pub struct MyGraph {
-    pub a: LeafNodeRc<NumberInput>,
-    pub b: LeafNodeRc<NumberInput>,
-    pub c: LeafNodeRc<NumberInput>,
+    pub a: Rc<LeafNode<NumberInput>>,
+    pub b: Rc<LeafNode<NumberInput>>,
+    pub c: Rc<LeafNode<NumberInput>>,
     pub answer: Rc<AnswerNode>,
 }
 
@@ -114,18 +130,10 @@ pub fn my_graph() -> MyGraph {
     let b = NumberInput::default().into_leaf();
     let c = NumberInput::default().into_leaf();
 
-    let sum = Sum::default().into_node(Components::new(
-        Dependency::new(Rc::clone(&a)),
-        Dependency::new(Rc::clone(&b)),
-    ));
-    let multiply = Multiply::default().into_node(Components::new(
-        Dependency::new(Rc::clone(&a)),
-        Dependency::new(Rc::clone(&c)),
-    ));
-    let answer = Answer::default().into_node(AnswerComponents::new(
-        Dependency::new(Rc::clone(&sum)),
-        Dependency::new(Rc::clone(&multiply)),
-    ));
+    let sum = Sum::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&b)));
+    let multiply = Multiply::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&c)));
+    let answer =
+        Answer::default().into_node(AnswerComponents::new(Rc::clone(&sum), Rc::clone(&multiply)));
 
     MyGraph { a, b, c, answer }
 }

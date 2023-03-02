@@ -1,12 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
-use super::{Clean, ResolveState};
 use crate::execution::{
-    identifiable::next_node_id, Dep, Identifiable, Named, NodeState, Resolve,
-    UpdateLeafMut, Visitor,
+    identifiable::next_node_id, Clean, Identifiable, Named, NodeRef, NodeState, Resolve,
+    ResolveState, UpdateLeaf, Visitor,
 };
-
-pub type LeafNodeRc<T> = Rc<LeafNode<T>>;
 
 pub struct LeafNode<T> {
     data: RefCell<NodeState<T>>,
@@ -27,15 +24,15 @@ impl<T: Named> Identifiable for LeafNode<T> {
 
 impl<T> LeafNode<T>
 where
-    T: UpdateLeafMut,
+    T: UpdateLeaf,
 {
     /// Wrap this leaf in a node.
-    pub fn new(data: T) -> LeafNodeRc<T> {
+    pub fn new(data: T) -> Rc<LeafNode<T>> {
         Self::new_with_id(data, next_node_id())
     }
 
     /// Create this node with a specified Id. Useful for tests.
-    pub fn new_with_id(data: T, id: usize) -> LeafNodeRc<T> {
+    pub fn new_with_id(data: T, id: usize) -> Rc<LeafNode<T>> {
         Rc::new(Self {
             data: RefCell::new(NodeState::new(data)),
             id,
@@ -56,11 +53,12 @@ where
 
 impl<T> Resolve for LeafNode<T>
 where
-    T: UpdateLeafMut,
+    T: UpdateLeaf,
 {
-    type Output<'a> = Dep<'a, T> where Self: 'a;
+    type Output<'a> = NodeRef<'a, T> where Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> Self::Output<'_> {
+        visitor.touch(self);
         if visitor.visit(self) {
             let mut node_state = self.data.borrow_mut();
             // Ensures `update` changes are only flushed once.
@@ -75,6 +73,7 @@ where
             // The hash is only set when this node is being read.
             node_state.update_node_hash();
         }
+        visitor.leave(self);
         self.data.borrow()
     }
 }

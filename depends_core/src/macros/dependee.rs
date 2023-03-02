@@ -2,9 +2,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
-    parse2,
-    token::Lt,
-    Data, DeriveInput, Generics, LitBool, Token,
+    parse2, Data, DeriveInput, LitBool, Token, Type,
 };
 
 use super::attrs::get_depends_attrs;
@@ -13,7 +11,7 @@ use super::attrs::get_depends_attrs;
 
 enum DependeeAttr {
     NodeName(Span, Ident),
-    Dependencies(Span, Dependencies),
+    Dependencies(Span, Type),
     CustomClean(Span, LitBool),
 }
 
@@ -35,27 +33,9 @@ impl Parse for DependeeAttr {
     }
 }
 
-struct Dependencies {
-    ident: Ident,
-    generics: Option<Generics>,
-}
-
-impl Parse for Dependencies {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<Ident>()?;
-        let lookahead = input.lookahead1();
-        let generics = if lookahead.peek(Lt) {
-            Some(input.parse()?)
-        } else {
-            None
-        };
-        Ok(Self { ident, generics })
-    }
-}
-
 struct DependeeParsedAttrs {
     node_name: Option<Ident>,
-    dependencies: Option<Dependencies>,
+    dependencies: Option<Type>,
     custom_clean: Option<bool>,
 }
 
@@ -108,14 +88,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     let name = ident.to_string();
 
     // parse the attributes
-    let (
-        node_ident,
-        Dependencies {
-            ident: dep_ident,
-            generics: dep_generics,
-        },
-        custom_clean,
-    ) = {
+    let (node_ident, dependencies_ty, custom_clean) = {
         let attrs = get_depends_attrs(attrs)
             .expect("attributes must be in the form \"#[depends(... = ..., ...)]\"");
         let parsed: DependeeParsedAttrs = attrs.try_into().unwrap();
@@ -158,17 +131,17 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     if let Data::Struct(_data) = data {
         quote! {
             #vis struct #node_ident #generics {
-                dependencies: #dep_ident #dep_generics,
+                dependencies: #dependencies_ty,
                 data: ::std::cell::RefCell<::depends::core::NodeState<#ident #generics>>,
                 id: usize
             }
 
             impl #impl_generics #node_ident #ty_generics #where_clause {
-                pub fn new(dependencies: #dep_ident #dep_generics, data: #ident #ty_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
+                pub fn new(dependencies: #dependencies_ty, data: #ident #ty_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
                     Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
                 }
 
-                pub fn new_with_id(dependencies: #dep_ident #dep_generics, data: #ident #ty_generics, id: usize) -> ::std::rc::Rc<#node_ident #ty_generics> {
+                pub fn new_with_id(dependencies: #dependencies_ty, data: #ident #ty_generics, id: usize) -> ::std::rc::Rc<#node_ident #ty_generics> {
                     ::std::rc::Rc::new(
                         #node_ident {
                             dependencies,
@@ -186,7 +159,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
             }
 
             impl #impl_generics #ident #ty_generics #where_clause {
-                pub fn into_node(self, dependencies: #dep_ident #dep_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
+                pub fn into_node(self, dependencies: #dependencies_ty) -> ::std::rc::Rc<#node_ident #ty_generics> {
                     #node_ident::new(
                         dependencies,
                         self,
@@ -208,7 +181,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
 
             impl #impl_generics ::depends::core::Depends for #ident #ty_generics #where_clause {
                 type Input<'a>
-                = <#dep_ident #dep_generics as ::depends::core::Resolve>::Output<'a>
+                = <#dependencies_ty as ::depends::core::Resolve>::Output<'a>
                     where
                         Self: 'a;
             }
@@ -219,6 +192,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                 fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
                     use ::depends::core::{IsDirty, Clean};
 
+                    visitor.touch(self);
                     if visitor.visit(self) {
                         let input = self.dependencies.resolve(visitor);
                         if input.is_dirty() {
@@ -228,6 +202,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                             node_state.update_node_hash();
                         }
                     }
+                    visitor.leave(self);
                     self.data.borrow()
                 }
             }
@@ -287,6 +262,20 @@ mod tests {
         };
         assert_snapshot!(
             "dependee_generics_custom_clean",
+            format_source(derive_dependee(input).to_string().as_str())
+        );
+    }
+
+    #[test]
+    fn test_dependee_single_dependency() {
+        let input = parse_quote! {
+            #[depends(dependencies = Dependency<Rc<SomeNode<Bar>>>, custom_clean = true)]
+            struct Foo<T> {
+                bar: Vec<usize>
+            }
+        };
+        assert_snapshot!(
+            "dependee_single_dependency",
             format_source(derive_dependee(input).to_string().as_str())
         );
     }
