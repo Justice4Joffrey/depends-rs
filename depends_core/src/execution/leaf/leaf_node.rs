@@ -1,12 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::execution::{
-    identifiable::next_node_id, Clean, Identifiable, Named, NodeRef, NodeState, Resolve,
-    ResolveState, UpdateLeaf, Visitor,
+    identifiable::next_node_id, Clean, Identifiable, LeafNodeState, LeafState, Named, NodeRef,
+    NodeState, Resolve, UpdateLeaf, Visitor,
 };
 
+/// A node which has no dependencies. Leaf nodes receive their state from
+/// _outside_ of the graph structure from calls to [update](Self::update).
 pub struct LeafNode<T> {
-    data: RefCell<NodeState<T>>,
+    data: RefCell<NodeState<T, LeafNodeState>>,
     id: usize,
 }
 
@@ -34,7 +36,7 @@ where
     /// Create this node with a specified Id. Useful for tests.
     pub fn new_with_id(data: T, id: usize) -> Rc<LeafNode<T>> {
         Rc::new(Self {
-            data: RefCell::new(NodeState::new(data)),
+            data: RefCell::new(NodeState::new_leaf(data)),
             id,
         })
     }
@@ -43,10 +45,10 @@ where
     pub fn update(&self, input: T::Input) {
         let mut node_state = self.data.borrow_mut();
         // Flush any changes since it was resolved.
-        if node_state.state() == ResolveState::Resolving {
+        if node_state.state() == LeafState::Resolving {
             node_state.clean();
         }
-        *(node_state.state_mut()) = ResolveState::Updating;
+        *(node_state.state_mut()) = LeafState::Updating;
         node_state.data_mut().update_mut(input);
     }
 }
@@ -55,7 +57,7 @@ impl<T> Resolve for LeafNode<T>
 where
     T: UpdateLeaf,
 {
-    type Output<'a> = NodeRef<'a, T> where Self: 'a;
+    type Output<'a> = NodeRef<'a, T, LeafNodeState> where Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> Self::Output<'_> {
         visitor.touch(self);
@@ -63,12 +65,12 @@ where
             let mut node_state = self.data.borrow_mut();
             // Ensures `update` changes are only flushed once.
             match node_state.state() {
-                ResolveState::Updating => *node_state.state_mut() = ResolveState::Resolving,
-                ResolveState::Resolving => {
+                LeafState::Updating => *node_state.state_mut() = LeafState::Resolving,
+                LeafState::Resolving => {
                     node_state.clean();
-                    *node_state.state_mut() = ResolveState::Resolved
+                    *node_state.state_mut() = LeafState::Resolved
                 }
-                ResolveState::Resolved => {}
+                LeafState::Resolved => {}
             }
             // The hash is only set when this node is being read.
             node_state.update_node_hash();

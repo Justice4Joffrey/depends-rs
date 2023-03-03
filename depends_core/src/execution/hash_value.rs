@@ -9,7 +9,7 @@ pub trait HashValue {
     fn hash_value(&self) -> NodeHash;
 }
 
-impl<T: HashValue> HashValue for Ref<'_, NodeState<T>> {
+impl<T: HashValue, N> HashValue for Ref<'_, NodeState<T, N>> {
     fn hash_value(&self) -> NodeHash {
         self.deref().hash_value()
     }

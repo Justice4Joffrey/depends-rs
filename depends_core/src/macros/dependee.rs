@@ -145,7 +145,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                     ::std::rc::Rc::new(
                         #node_ident {
                             dependencies,
-                            data: ::std::cell::RefCell::new(::depends::core::NodeState::new(data)),
+                            data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
                             id
                         }
                     )

@@ -1,36 +1,29 @@
 use super::NodeHash;
-use crate::execution::{Clean, Depends, HashValue, Named, UpdateDependee, UpdateLeaf};
+use crate::execution::{Clean, Depends, HashValue, LeafState, Named, UpdateDependee, UpdateLeaf};
 
-// TODO: this is only applicable to leaves, therefore should be exported
-/// Used to ensure that pending data is resolved at most once between calls to
-/// `update`.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Default)]
-pub enum ResolveState {
-    /// This node is being updated.
-    #[default]
-    Updating,
-    /// Indicates this node must be cleaned when next resolved or updated.
-    Resolving,
-    /// This node has been resolved, no further cleaning is necessary.
-    Resolved,
+/// Dependee nodes don't have custom fields.
+#[doc(hidden)]
+pub struct DependeeNodeState;
+
+/// Custom state for a [LeafNode](crate::execution::LeafNode).
+#[derive(Default)]
+pub struct LeafNodeState {
+    /// Tracks whether this node is being updated or resolved.
+    state: LeafState,
 }
 
-pub struct NodeState<T> {
-    state: ResolveState,
+/// A wrapper for some data `T`, tracking some context around the data's
+/// computation state.
+pub struct NodeState<T, N = DependeeNodeState> {
     /// A value representing the unique state of the data (i.e. the Hash).
     node_hash: NodeHash,
+    /// The data being wrapped.
     data: T,
+    /// Optional node-type specific behaviour.
+    node_type: N,
 }
 
-impl<T: HashValue> NodeState<T> {
-    pub fn new(data: T) -> Self {
-        Self {
-            state: ResolveState::default(),
-            node_hash: NodeHash::default(),
-            data,
-        }
-    }
-
+impl<T: HashValue, N> NodeState<T, N> {
     pub fn data(&self) -> &T {
         &self.data
     }
@@ -43,43 +36,35 @@ impl<T: HashValue> NodeState<T> {
         self.node_hash
     }
 
-    pub fn state(&self) -> ResolveState {
-        self.state
-    }
-
     pub fn node_hash_mut(&mut self) -> &mut NodeHash {
         &mut self.node_hash
     }
 
-    pub fn state_mut(&mut self) -> &mut ResolveState {
-        &mut self.state
-    }
-
+    /// Update the stored hash value of the data.
     pub fn update_node_hash(&mut self) {
         self.node_hash = self.data.hash_value()
     }
 }
 
-impl<T> UpdateDependee for NodeState<T>
-where
-    T: UpdateDependee,
-{
-    fn update_mut(&mut self, input: Self::Input<'_>) {
-        self.data.update_mut(input)
+impl<T: UpdateLeaf> NodeState<T, LeafNodeState> {
+    pub fn new_leaf(data: T) -> Self {
+        Self {
+            node_hash: NodeHash::default(),
+            data,
+            node_type: LeafNodeState::default(),
+        }
+    }
+
+    pub fn state(&self) -> LeafState {
+        self.node_type.state
+    }
+
+    pub fn state_mut(&mut self) -> &mut LeafState {
+        &mut self.node_type.state
     }
 }
 
-impl<T> Depends for NodeState<T>
-where
-    T: Depends,
-{
-    type Input<'a> = T::Input<'a> where Self: 'a;
-}
-
-impl<T> UpdateLeaf for NodeState<T>
-where
-    T: UpdateLeaf,
-{
+impl<T: UpdateLeaf> UpdateLeaf for NodeState<T, LeafNodeState> {
     type Input = T::Input;
 
     fn update_mut(&mut self, input: Self::Input) {
@@ -87,25 +72,39 @@ where
     }
 }
 
-impl<T> HashValue for NodeState<T>
-where
-    T: HashValue,
-{
+impl<T: UpdateDependee> NodeState<T> {
+    pub fn new_dependee(data: T) -> Self {
+        Self {
+            node_hash: NodeHash::default(),
+            data,
+            node_type: DependeeNodeState,
+        }
+    }
+}
+
+impl<T: UpdateDependee> UpdateDependee for NodeState<T> {
+    fn update_mut(&mut self, input: Self::Input<'_>) {
+        self.data.update_mut(input)
+    }
+}
+
+impl<T: Depends> Depends for NodeState<T> {
+    type Input<'a> = T::Input<'a> where Self: 'a;
+}
+
+impl<T: HashValue, N> HashValue for NodeState<T, N> {
     fn hash_value(&self) -> NodeHash {
         self.node_hash
     }
 }
 
-impl<T> Named for NodeState<T>
-where
-    T: Named,
-{
+impl<T: Named, N> Named for NodeState<T, N> {
     fn name() -> &'static str {
         T::name()
     }
 }
 
-impl<T: Clean> Clean for NodeState<T> {
+impl<T: Clean, N> Clean for NodeState<T, N> {
     fn clean(&mut self) {
         self.data.clean()
     }
