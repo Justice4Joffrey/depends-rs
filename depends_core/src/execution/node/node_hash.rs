@@ -33,7 +33,7 @@ pub enum NodeHash {
     #[default]
     NotHashed,
     /// Equal to another value if the internal number is equal.
-    Hashed(usize),
+    Hashed(u64),
 }
 
 impl PartialEq for NodeHash {

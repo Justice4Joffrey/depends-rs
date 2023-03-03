@@ -7,9 +7,8 @@ use syn::{
 
 use super::attrs::get_depends_attrs;
 
-// TODO: field attr #[depends(hash_this)]
-
 enum LeafAttr {
+    CanHash(Span, LitBool),
     CustomClean(Span, LitBool),
 }
 
@@ -18,6 +17,7 @@ impl Parse for LeafAttr {
         let ident = input.parse::<Ident>()?;
         input.parse::<Token![=]>()?;
         match ident.to_string().as_str() {
+            "can_hash" => Ok(LeafAttr::CanHash(ident.span(), input.parse()?)),
             "custom_clean" => Ok(LeafAttr::CustomClean(ident.span(), input.parse()?)),
             unknown => {
                 Err(syn::Error::new(
@@ -30,6 +30,7 @@ impl Parse for LeafAttr {
 }
 
 struct LeafParsedAttrs {
+    can_hash: Option<bool>,
     custom_clean: Option<bool>,
 }
 
@@ -37,9 +38,19 @@ impl TryFrom<Vec<LeafAttr>> for LeafParsedAttrs {
     type Error = syn::Error;
 
     fn try_from(value: Vec<LeafAttr>) -> Result<Self, Self::Error> {
-        let mut this = Self { custom_clean: None };
+        let mut this = Self {
+            can_hash: None,
+            custom_clean: None,
+        };
         for v in value.into_iter() {
             match v {
+                LeafAttr::CanHash(s, value) => {
+                    if this.can_hash.is_none() {
+                        this.can_hash = Some(value.value);
+                    } else {
+                        return Err(syn::Error::new(s, "attribute specified twice"));
+                    }
+                }
                 LeafAttr::CustomClean(s, value) => {
                     if this.custom_clean.is_none() {
                         this.custom_clean = Some(value.value);
@@ -62,11 +73,14 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
         ..
     } = parse2::<DeriveInput>(input).unwrap();
     let name = ident.to_string();
-    let custom_clean = {
+    let (can_hash, custom_clean) = {
         let attrs = get_depends_attrs(attrs)
             .expect("attributes must be in the form \"#[depends(... = ..., ...)]\"");
         let parsed: LeafParsedAttrs = attrs.try_into().unwrap();
-        parsed.custom_clean.unwrap_or(false)
+        (
+            parsed.can_hash.unwrap_or(true),
+            parsed.custom_clean.unwrap_or(false),
+        )
     };
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
@@ -77,6 +91,23 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
         quote! {
             impl #ty_generics ::depends::core::Clean for #ident #ty_generics #where_clause {
                 fn clean(&mut self) {}
+            }
+        }
+    };
+
+    let hash_value_clause = if can_hash {
+        quote! {
+            fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+                ::depends::core::NodeHash::Hashed({
+                    self.hash(hasher);
+                    hasher.finish()
+                })
+            }
+        }
+    } else {
+        quote! {
+            fn hash_value(&self, _: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+                ::depends::core::NodeHash::NotHashed
             }
         }
     };
@@ -93,6 +124,10 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
                 pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
                     ::depends::core::LeafNode::new(self)
                 }
+            }
+
+            impl #impl_generics ::depends::core::HashValue for #ident #ty_generics #where_clause {
+                #hash_value_clause
             }
 
             #clean_clause

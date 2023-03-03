@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependee.rs
-assertion_line: 277
+assertion_line: 309
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {
@@ -23,7 +23,7 @@ impl<T> FooNode<T> {
     ) -> ::std::rc::Rc<FooNode<T>> {
         ::std::rc::Rc::new(FooNode {
             dependencies,
-            data: ::std::cell::RefCell::new(::depends::core::NodeState::new(data)),
+            data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
             id,
         })
     }
@@ -59,18 +59,27 @@ impl<T> ::depends::core::Resolve for FooNode<T> {
 
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         use ::depends::core::{Clean, IsDirty};
+        use ::std::ops::DerefMut;
         visitor.touch(self);
         if visitor.visit(self) {
             let input = self.dependencies.resolve(visitor);
             if input.is_dirty() {
                 let mut node_state = self.data.borrow_mut();
                 node_state.clean();
-                node_state.data_mut().update_mut(input);
-                node_state.update_node_hash();
+                node_state.deref_mut().update_mut(input);
+                node_state.update_node_hash(&mut visitor.hasher());
             }
         }
         visitor.leave(self);
         self.data.borrow()
+    }
+}
+impl<T> ::depends::core::HashValue for Foo<T> {
+    fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+        ::depends::core::NodeHash::Hashed({
+            self.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 

@@ -7,12 +7,11 @@ use syn::{
 
 use super::attrs::get_depends_attrs;
 
-// TODO: field attr #[depends(hash_this)]
-
 enum DependeeAttr {
     NodeName(Span, Ident),
     Dependencies(Span, Type),
     CustomClean(Span, LitBool),
+    CanHash(Span, LitBool),
 }
 
 impl Parse for DependeeAttr {
@@ -23,6 +22,7 @@ impl Parse for DependeeAttr {
             "node_name" => Ok(DependeeAttr::NodeName(ident.span(), input.parse()?)),
             "dependencies" => Ok(DependeeAttr::Dependencies(ident.span(), input.parse()?)),
             "custom_clean" => Ok(DependeeAttr::CustomClean(ident.span(), input.parse()?)),
+            "can_hash" => Ok(DependeeAttr::CanHash(ident.span(), input.parse()?)),
             unknown => {
                 Err(syn::Error::new(
                     ident.span(),
@@ -37,6 +37,7 @@ struct DependeeParsedAttrs {
     node_name: Option<Ident>,
     dependencies: Option<Type>,
     custom_clean: Option<bool>,
+    can_hash: Option<bool>,
 }
 
 impl TryFrom<Vec<DependeeAttr>> for DependeeParsedAttrs {
@@ -47,6 +48,7 @@ impl TryFrom<Vec<DependeeAttr>> for DependeeParsedAttrs {
             node_name: None,
             dependencies: None,
             custom_clean: None,
+            can_hash: None,
         };
         for v in value.into_iter() {
             match v {
@@ -71,6 +73,13 @@ impl TryFrom<Vec<DependeeAttr>> for DependeeParsedAttrs {
                         return Err(syn::Error::new(s, "attribute specified twice"));
                     }
                 }
+                DependeeAttr::CanHash(s, value) => {
+                    if this.can_hash.is_none() {
+                        this.can_hash = Some(value.value);
+                    } else {
+                        return Err(syn::Error::new(s, "attribute specified twice"));
+                    }
+                }
             }
         }
         Ok(this)
@@ -88,7 +97,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     let name = ident.to_string();
 
     // parse the attributes
-    let (node_ident, dependencies_ty, custom_clean) = {
+    let (node_ident, dependencies_ty, custom_clean, can_hash) = {
         let attrs = get_depends_attrs(attrs)
             .expect("attributes must be in the form \"#[depends(... = ..., ...)]\"");
         let parsed: DependeeParsedAttrs = attrs.try_into().unwrap();
@@ -98,6 +107,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                 .unwrap_or_else(|| Ident::new(format!("{}Node", name).as_str(), Span::call_site())),
             parsed.dependencies.expect("missing \"dependencies\""),
             parsed.custom_clean.unwrap_or(false),
+            parsed.can_hash.unwrap_or(true),
         )
     };
 
@@ -107,6 +117,23 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
         quote! {
             impl #generics ::depends::core::Clean for #ident {
                 fn clean(&mut self) {}
+            }
+        }
+    };
+
+    let hash_value_clause = if can_hash {
+        quote! {
+            fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+                ::depends::core::NodeHash::Hashed({
+                    self.hash(hasher);
+                    hasher.finish()
+                })
+            }
+        }
+    } else {
+        quote! {
+            fn hash_value(&self, _: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+                ::depends::core::NodeHash::NotHashed
             }
         }
     };
@@ -145,7 +172,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                     ::std::rc::Rc::new(
                         #node_ident {
                             dependencies,
-                            data: ::std::cell::RefCell::new(::depends::core::NodeState::new(data)),
+                            data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
                             id
                         }
                     )
@@ -191,6 +218,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
 
                 fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
                     use ::depends::core::{IsDirty, Clean};
+                    use ::std::ops::DerefMut;
 
                     visitor.touch(self);
                     if visitor.visit(self) {
@@ -198,13 +226,17 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                         if input.is_dirty() {
                             let mut node_state = self.data.borrow_mut();
                             node_state.clean();
-                            node_state.data_mut().update_mut(input);
-                            node_state.update_node_hash();
+                            node_state.deref_mut().update_mut(input);
+                            node_state.update_node_hash(&mut visitor.hasher());
                         }
                     }
                     visitor.leave(self);
                     self.data.borrow()
                 }
+            }
+
+            impl #impl_generics ::depends::core::HashValue for #ident #ty_generics #where_clause {
+                #hash_value_clause
             }
 
             #clean_clause

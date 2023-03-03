@@ -1,22 +1,19 @@
 #![allow(dead_code)]
 
-use std::rc::Rc;
+use std::{
+    hash::{Hash, Hasher},
+    rc::Rc,
+};
 
 use depends::{
-    core::{Dependency, Depends, HashValue, LeafNode, UpdateDependee, UpdateLeaf},
+    core::{Dependency, Depends, LeafNode, UpdateDependee, UpdateLeaf},
     derives::{dependencies, Dependee, Leaf},
 };
 
 /// A number which can be edited from the _outside_ i.e. has _no_ dependencies.
-#[derive(Leaf, Default)]
+#[derive(Leaf, Default, Hash)]
 pub struct NumberInput {
     value: i32,
-}
-
-impl HashValue for NumberInput {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
 }
 
 impl UpdateLeaf for NumberInput {
@@ -43,78 +40,54 @@ pub struct AnswerComponents {
     right: MultiplyNode,
 }
 
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = AnswerComponents, node_name = AnswerNode)]
 pub struct Answer {
     value: i32,
 }
 
-impl HashValue for Answer {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Dependency<Rc<LeafNode<NumberInput>>>, node_name = SquareNode)]
 pub struct Square {
     value: i32,
 }
 
-impl HashValue for Square {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components, node_name = SumNode)]
 pub struct Sum {
     value: i32,
 }
 
-impl HashValue for Sum {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components, node_name = MultiplyNode)]
 pub struct Multiply {
     value: i32,
 }
 
-impl HashValue for Multiply {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
 impl UpdateDependee for Square {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
-        self.value = input.data().data().value.pow(2);
+        self.value = input.value.pow(2);
     }
 }
 
 impl UpdateDependee for Sum {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value + right.data().data().value;
+        self.value = left.value + right.value;
     }
 }
 
 impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
-        self.value = left.data().data().value + 2 * right.data().data().value;
+        self.value = left.value + 2 * right.value;
     }
 }
 
 impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value * right.data().data().value;
+        self.value = left.value * right.value;
     }
 }
 

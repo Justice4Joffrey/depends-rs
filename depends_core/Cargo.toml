@@ -6,7 +6,8 @@ edition = "2021"
 description = "Ergonomic, performant, incremental computation between arbitrary types"
 
 [dependencies]
-hashbrown = { version = "0.13", optional = true}
+ahash = { version = "0.8", optional = true}
+hashbrown = { version = "0.13", optional = true, features = ["ahash"]}
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
@@ -18,4 +19,4 @@ insta = "1.26"
 
 [features]
 default = []
-hashbrown = ["dep:hashbrown"]
+hashbrown = ["dep:ahash", "dep:hashbrown"]

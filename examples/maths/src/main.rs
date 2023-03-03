@@ -1,21 +1,19 @@
-use std::{collections::HashSet, rc::Rc};
+use std::{
+    collections::HashSet,
+    hash::{Hash, Hasher},
+    rc::Rc,
+};
 
 use depends::{
-    core::{Dependency, Depends, HashValue, LeafNode, Resolve, UpdateDependee, UpdateLeaf},
+    core::{Dependency, Depends, LeafNode, Resolve, UpdateDependee, UpdateLeaf},
     derives::{dependencies, Dependee, Leaf},
     graphviz::GraphvizVisitor,
 };
 
 /// A number which can be edited from the _outside_ i.e. has _no_ dependencies.
-#[derive(Leaf, Default)]
+#[derive(Leaf, Default, Hash)]
 pub struct NumberInput {
     value: i32,
-}
-
-impl HashValue for NumberInput {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
 }
 
 impl UpdateLeaf for NumberInput {
@@ -42,65 +40,41 @@ pub struct AnswerComponents {
     right: SquareNode,
 }
 
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = AnswerComponents, node_name = AnswerNode)]
 pub struct Answer {
     value: i32,
 }
 
-impl HashValue for Answer {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components, node_name = SumNode)]
 pub struct Sum {
     value: i32,
 }
 
-impl HashValue for Sum {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
 // An example of how a single dependency can be used.
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Dependency<Rc<MultiplyNode>>, node_name = SquareNode)]
 pub struct Square {
     value: i32,
 }
 
-impl HashValue for Square {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components, node_name = MultiplyNode)]
 pub struct Multiply {
     value: i32,
 }
 
-impl HashValue for Multiply {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
-    }
-}
-
 impl UpdateDependee for Square {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
-        self.value = input.data().data().value.pow(2);
+        self.value = input.value.pow(2);
     }
 }
 
 impl UpdateDependee for Sum {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value + right.data().data().value;
+        self.value = left.value + right.value;
     }
 }
 
@@ -108,14 +82,14 @@ impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
         // TODO oppressive dereferencing
-        self.value = left.data().data().value + 2 * right.data().data().value;
+        self.value = left.value + 2 * right.value;
     }
 }
 
 impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value * right.data().data().value;
+        self.value = left.value * right.value;
     }
 }
 
@@ -173,9 +147,9 @@ digraph G {
     let mut visitor = HashSet::<usize>::new();
 
     // we can now sum the latest values!
-    assert_eq!(graph.answer.resolve_root(&mut visitor).data().value, 42);
+    assert_eq!(graph.answer.resolve_root(&mut visitor).value, 42);
 
     graph.c.update(2);
 
-    assert_eq!(graph.answer.resolve_root(&mut visitor).data().value, 12842);
+    assert_eq!(graph.answer.resolve_root(&mut visitor).value, 12842);
 }

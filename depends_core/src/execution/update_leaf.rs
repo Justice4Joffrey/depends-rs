@@ -15,6 +15,7 @@ use crate::execution::Named;
 ///
 /// ```
 /// # use depends_core::execution::{Clean, HashValue, Named, NodeHash, UpdateLeaf};
+/// # use std::hash::Hasher;
 /// #[derive(Default)]
 /// pub struct MyNode {
 ///     // Appends every item to this collection.
@@ -27,7 +28,7 @@ use crate::execution::Named;
 /// #     fn name() -> &'static str { unimplemented!() }
 /// # }
 /// # impl HashValue for MyNode {
-/// #     fn hash_value(&self) -> NodeHash { unimplemented!() }
+/// #     fn hash_value(&self, _: &mut impl Hasher) -> NodeHash { unimplemented!() }
 /// # }
 ///
 /// impl UpdateLeaf for MyNode {
