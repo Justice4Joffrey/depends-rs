@@ -19,7 +19,10 @@ pub struct Dependency<T> {
     dependency: T,
 }
 
-impl<T> Dependency<T> {
+impl<T> Dependency<T>
+where
+    T: Resolve,
+{
     pub fn new(dependency: T) -> Self {
         Self {
             last_state: RefCell::new(None),
