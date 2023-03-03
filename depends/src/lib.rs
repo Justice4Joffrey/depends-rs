@@ -31,7 +31,7 @@
 //!
 //! impl HashValue for NumberInput {
 //!     fn hash_value(&self) -> NodeHash {
-//!         NodeHash::Hashed(self.value as usize)
+//!         NodeHash::Hashed(self.value as u64)
 //!     }
 //! }
 //!
@@ -63,7 +63,7 @@
 //!
 //! impl HashValue for Sum {
 //!     fn hash_value(&self) -> NodeHash {
-//!         NodeHash::Hashed(self.value as usize)
+//!         NodeHash::Hashed(self.value as u64)
 //!     }
 //! }
 //!

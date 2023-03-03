@@ -1,4 +1,8 @@
-use std::{collections::HashSet, rc::Rc};
+use std::{
+    collections::HashSet,
+    hash::{BuildHasher, Hash, Hasher},
+    rc::Rc,
+};
 
 use depends::{
     core::{Dependency, Depends, HashValue, LeafNode, Resolve, UpdateDependee, UpdateLeaf},
@@ -13,8 +17,11 @@ pub struct NumberInput {
 }
 
 impl HashValue for NumberInput {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
+    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed({
+            self.value.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 
@@ -49,8 +56,11 @@ pub struct Answer {
 }
 
 impl HashValue for Answer {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
+    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed({
+            self.value.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 
@@ -61,8 +71,11 @@ pub struct Sum {
 }
 
 impl HashValue for Sum {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
+    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed({
+            self.value.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 
@@ -74,8 +87,11 @@ pub struct Square {
 }
 
 impl HashValue for Square {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
+    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed({
+            self.value.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 
@@ -86,8 +102,11 @@ pub struct Multiply {
 }
 
 impl HashValue for Multiply {
-    fn hash_value(&self) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed(self.value as usize)
+    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
+        depends::core::NodeHash::Hashed({
+            self.value.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 

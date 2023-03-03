@@ -1,13 +1,21 @@
 #[cfg(feature = "hashbrown")]
 pub mod hashbrown;
 
-use std::collections::{BTreeSet, HashSet};
+use std::{
+    collections::{
+        hash_map::{DefaultHasher, RandomState},
+        BTreeSet, HashSet,
+    },
+    hash::{BuildHasher, Hasher},
+};
 
-use super::Identifiable;
+use super::{HashValue, Identifiable};
 
 /// A collection passed in to a graph, tracking the identifiers of each nodes to
 /// avoid traversing
 pub trait Visitor {
+    type Hasher: Hasher;
+
     /// Return true *iff* this node hasn't been visited yet.
     fn visit<N>(&mut self, node: &N) -> bool
     where
@@ -30,9 +38,13 @@ pub trait Visitor {
         N: Identifiable,
     {
     }
+
+    fn hasher(&self) -> Self::Hasher;
 }
 
 impl Visitor for HashSet<usize> {
+    type Hasher = DefaultHasher;
+
     fn visit<N>(&mut self, node: &N) -> bool
     where
         N: Identifiable,
@@ -43,17 +55,8 @@ impl Visitor for HashSet<usize> {
     fn clear(&mut self) {
         self.clear()
     }
-}
 
-impl Visitor for BTreeSet<usize> {
-    fn visit<N>(&mut self, node: &N) -> bool
-    where
-        N: Identifiable,
-    {
-        self.insert(node.id())
-    }
-
-    fn clear(&mut self) {
-        self.clear()
+    fn hasher(&self) -> Self::Hasher {
+        HashSet::<usize>::hasher(self).build_hasher()
     }
 }

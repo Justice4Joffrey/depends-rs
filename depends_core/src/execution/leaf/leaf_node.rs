@@ -73,7 +73,7 @@ where
                 LeafState::Resolved => {}
             }
             // The hash is only set when this node is being read.
-            node_state.update_node_hash();
+            node_state.update_node_hash(&mut visitor.hasher());
         }
         visitor.leave(self);
         self.data.borrow()

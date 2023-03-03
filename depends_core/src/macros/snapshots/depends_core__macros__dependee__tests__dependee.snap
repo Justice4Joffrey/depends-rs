@@ -57,7 +57,7 @@ impl ::depends::core::Resolve for SomeName {
                 let mut node_state = self.data.borrow_mut();
                 node_state.clean();
                 node_state.deref_mut().update_mut(input);
-                node_state.update_node_hash();
+                node_state.update_node_hash(&mut visitor.hasher());
             }
         }
         visitor.leave(self);

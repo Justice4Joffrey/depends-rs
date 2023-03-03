@@ -44,7 +44,7 @@ where
     fn resolve(&self, visitor: &mut impl super::Visitor) -> Self::Output<'_> {
         let mut last_state = self.last_state.borrow_mut();
         let data = self.dependency.resolve(visitor);
-        let current_state = data.hash_value();
+        let current_state = data.hash_value(&mut visitor.hasher());
         if last_state.map(|s| s == current_state).unwrap_or(false) {
             DepRef::new(DependencyState::Clean, data)
         } else {

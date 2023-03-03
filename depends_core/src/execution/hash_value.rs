@@ -1,4 +1,8 @@
-use std::{cell::Ref, ops::Deref};
+use std::{
+    cell::Ref,
+    hash::{BuildHasher, Hasher},
+    ops::Deref,
+};
 
 use super::{NodeHash, NodeState};
 
@@ -6,11 +10,11 @@ use super::{NodeHash, NodeState};
 pub trait HashValue {
     /// Either a unique number, or a value detailing that this node cannot be
     /// hashed.
-    fn hash_value(&self) -> NodeHash;
+    fn hash_value(&self, hasher: &mut impl Hasher) -> NodeHash;
 }
 
 impl<T: HashValue, N> HashValue for Ref<'_, NodeState<T, N>> {
-    fn hash_value(&self) -> NodeHash {
-        self.deref().hash_value()
+    fn hash_value(&self, hasher: &mut impl Hasher) -> NodeHash {
+        self.deref().hash_value(hasher)
     }
 }

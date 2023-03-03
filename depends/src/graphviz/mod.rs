@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::{
+    collections::{hash_map::DefaultHasher, BTreeMap, BTreeSet, HashSet},
+    hash::BuildHasher,
+};
 
 use crate::core::{Identifiable, Visitor};
 
@@ -30,7 +33,7 @@ struct Node {
 /// #
 /// # impl HashValue for NumberInput {
 /// #     fn hash_value(&self) -> NodeHash {
-/// #         NodeHash::Hashed(self.value as usize)
+/// #         NodeHash::Hashed(self.value as u64)
 /// #     }
 /// # }
 /// #
@@ -62,7 +65,7 @@ struct Node {
 /// #
 /// # impl HashValue for Sum {
 /// #     fn hash_value(&self) -> NodeHash {
-/// #         NodeHash::Hashed(self.value as usize)
+/// #         NodeHash::Hashed(self.value as u64)
 /// #     }
 /// # }
 /// #
@@ -142,6 +145,8 @@ impl GraphvizVisitor {
 }
 
 impl Visitor for GraphvizVisitor {
+    type Hasher = DefaultHasher;
+
     fn visit<N>(&mut self, node: &N) -> bool
     where
         N: Identifiable,
@@ -177,5 +182,9 @@ impl Visitor for GraphvizVisitor {
         if let Some(parent) = self.stack.last() {
             self.nodes.get_mut(parent).map(|n| n.edges.insert(last));
         }
+    }
+
+    fn hasher(&self) -> Self::Hasher {
+        self.visitor.hasher().build_hasher()
     }
 }

@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    hash::{BuildHasher, Hasher},
+    ops::{Deref, DerefMut},
+};
 
 use super::NodeHash;
 use crate::execution::{Clean, Depends, HashValue, LeafState, Named, UpdateDependee, UpdateLeaf};
@@ -35,8 +38,8 @@ impl<T: HashValue, N> NodeState<T, N> {
     }
 
     /// Update the stored hash value of the data.
-    pub fn update_node_hash(&mut self) {
-        self.node_hash = self.data.hash_value()
+    pub fn update_node_hash(&mut self, hasher: &mut impl Hasher) {
+        self.node_hash = self.data.hash_value(hasher)
     }
 }
 
@@ -87,7 +90,7 @@ impl<T: Depends> Depends for NodeState<T> {
 }
 
 impl<T: HashValue, N> HashValue for NodeState<T, N> {
-    fn hash_value(&self) -> NodeHash {
+    fn hash_value(&self, _: &mut impl Hasher) -> NodeHash {
         self.node_hash
     }
 }
