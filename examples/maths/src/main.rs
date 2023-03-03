@@ -93,14 +93,14 @@ impl HashValue for Multiply {
 
 impl UpdateDependee for Square {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
-        self.value = input.data().data().value.pow(2);
+        self.value = input.value.pow(2);
     }
 }
 
 impl UpdateDependee for Sum {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value + right.data().data().value;
+        self.value = left.value + right.value;
     }
 }
 
@@ -108,14 +108,14 @@ impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
         // TODO oppressive dereferencing
-        self.value = left.data().data().value + 2 * right.data().data().value;
+        self.value = left.value + 2 * right.value;
     }
 }
 
 impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value * right.data().data().value;
+        self.value = left.value * right.value;
     }
 }
 
@@ -173,9 +173,9 @@ digraph G {
     let mut visitor = HashSet::<usize>::new();
 
     // we can now sum the latest values!
-    assert_eq!(graph.answer.resolve_root(&mut visitor).data().value, 42);
+    assert_eq!(graph.answer.resolve_root(&mut visitor).value, 42);
 
     graph.c.update(2);
 
-    assert_eq!(graph.answer.resolve_root(&mut visitor).data().value, 12842);
+    assert_eq!(graph.answer.resolve_root(&mut visitor).value, 12842);
 }

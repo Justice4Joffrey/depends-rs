@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, ops::Deref};
 
 use super::DependencyState;
 use crate::execution::IsDirty;
@@ -19,14 +19,18 @@ impl<T> DepRef<'_, T> {
             phantom: PhantomData,
         }
     }
-
-    pub fn data(&self) -> &T {
-        &self.data
-    }
 }
 
 impl<T> IsDirty for DepRef<'_, T> {
     fn is_dirty(&self) -> bool {
         self.state == DependencyState::Dirty
+    }
+}
+
+impl<T> Deref for DepRef<'_, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
     }
 }

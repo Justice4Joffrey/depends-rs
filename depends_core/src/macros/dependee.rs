@@ -191,6 +191,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
 
                 fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
                     use ::depends::core::{IsDirty, Clean};
+                    use ::std::ops::DerefMut;
 
                     visitor.touch(self);
                     if visitor.visit(self) {
@@ -198,7 +199,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                         if input.is_dirty() {
                             let mut node_state = self.data.borrow_mut();
                             node_state.clean();
-                            node_state.data_mut().update_mut(input);
+                            node_state.deref_mut().update_mut(input);
                             node_state.update_node_hash();
                         }
                     }

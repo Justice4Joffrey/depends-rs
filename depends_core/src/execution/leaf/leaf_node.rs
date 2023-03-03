@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, ops::DerefMut, rc::Rc};
 
 use crate::execution::{
     identifiable::next_node_id, Clean, Identifiable, LeafNodeState, LeafState, Named, NodeRef,
@@ -49,7 +49,7 @@ where
             node_state.clean();
         }
         *(node_state.state_mut()) = LeafState::Updating;
-        node_state.data_mut().update_mut(input);
+        node_state.deref_mut().update_mut(input);
     }
 }
 

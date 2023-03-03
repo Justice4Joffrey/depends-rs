@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 use super::NodeHash;
 use crate::execution::{Clean, Depends, HashValue, LeafState, Named, UpdateDependee, UpdateLeaf};
 
@@ -24,14 +26,6 @@ pub struct NodeState<T, N = DependeeNodeState> {
 }
 
 impl<T: HashValue, N> NodeState<T, N> {
-    pub fn data(&self) -> &T {
-        &self.data
-    }
-
-    pub fn data_mut(&mut self) -> &mut T {
-        &mut self.data
-    }
-
     pub fn node_hash(&self) -> NodeHash {
         self.node_hash
     }
@@ -107,5 +101,19 @@ impl<T: Named, N> Named for NodeState<T, N> {
 impl<T: Clean, N> Clean for NodeState<T, N> {
     fn clean(&mut self) {
         self.data.clean()
+    }
+}
+
+impl<T, N> Deref for NodeState<T, N> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
+impl<T, N> DerefMut for NodeState<T, N> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.data
     }
 }

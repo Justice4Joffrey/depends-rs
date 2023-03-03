@@ -93,28 +93,28 @@ impl HashValue for Multiply {
 
 impl UpdateDependee for Square {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
-        self.value = input.data().data().value.pow(2);
+        self.value = input.value.pow(2);
     }
 }
 
 impl UpdateDependee for Sum {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value + right.data().data().value;
+        self.value = left.value + right.value;
     }
 }
 
 impl UpdateDependee for Answer {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let AnswerComponentsRef { left, right } = input;
-        self.value = left.data().data().value + 2 * right.data().data().value;
+        self.value = left.value + 2 * right.value;
     }
 }
 
 impl UpdateDependee for Multiply {
     fn update_mut(&mut self, input: <Self as Depends>::Input<'_>) {
         let ComponentsRef { left, right } = input;
-        self.value = left.data().data().value * right.data().data().value;
+        self.value = left.value * right.value;
     }
 }
 
