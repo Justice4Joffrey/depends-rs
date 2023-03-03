@@ -6,23 +6,14 @@ use std::{
 };
 
 use depends::{
-    core::{Dependency, Depends, HashValue, LeafNode, UpdateDependee, UpdateLeaf},
+    core::{Dependency, Depends, LeafNode, UpdateDependee, UpdateLeaf},
     derives::{dependencies, Dependee, Leaf},
 };
 
 /// A number which can be edited from the _outside_ i.e. has _no_ dependencies.
-#[derive(Leaf, Default)]
+#[derive(Leaf, Default, Hash)]
 pub struct NumberInput {
     value: i32,
-}
-
-impl HashValue for NumberInput {
-    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed({
-            self.value.hash(hasher);
-            hasher.finish()
-        })
-    }
 }
 
 impl UpdateLeaf for NumberInput {
@@ -49,64 +40,28 @@ pub struct AnswerComponents {
     right: MultiplyNode,
 }
 
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = AnswerComponents, node_name = AnswerNode)]
 pub struct Answer {
     value: i32,
 }
 
-impl HashValue for Answer {
-    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed({
-            self.value.hash(hasher);
-            hasher.finish()
-        })
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Dependency<Rc<LeafNode<NumberInput>>>, node_name = SquareNode)]
 pub struct Square {
     value: i32,
 }
 
-impl HashValue for Square {
-    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed({
-            self.value.hash(hasher);
-            hasher.finish()
-        })
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components, node_name = SumNode)]
 pub struct Sum {
     value: i32,
 }
 
-impl HashValue for Sum {
-    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed({
-            self.value.hash(hasher);
-            hasher.finish()
-        })
-    }
-}
-
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components, node_name = MultiplyNode)]
 pub struct Multiply {
     value: i32,
-}
-
-impl HashValue for Multiply {
-    fn hash_value(&self, hasher: &mut impl Hasher) -> depends::core::NodeHash {
-        depends::core::NodeHash::Hashed({
-            self.value.hash(hasher);
-            hasher.finish()
-        })
-    }
 }
 
 impl UpdateDependee for Square {

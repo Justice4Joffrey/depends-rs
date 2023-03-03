@@ -1,8 +1,4 @@
-use std::{
-    cell::Ref,
-    hash::{BuildHasher, Hasher},
-    ops::Deref,
-};
+use std::{cell::Ref, hash::Hasher, ops::Deref};
 
 use super::{NodeHash, NodeState};
 

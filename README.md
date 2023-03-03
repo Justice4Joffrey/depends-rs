@@ -14,15 +14,16 @@ Dependency graphs are an excellent code architecture to tame complexity in
 such scenarios.
 
 ``` rust
-use std::{collections::HashSet, rc::Rc};
+use std::{collections::HashSet, hash::Hash, rc::Rc};
 
 use depends::{
     core::{Depends, Resolve, UpdateDependee, UpdateLeaf},
     derives::{Dependee, dependencies, Leaf},
 };
 
-// A `Leaf` is a node which takes new values from outside the graph.
-#[derive(Leaf, Default)]
+// A `Leaf` is a node which takes new values from outside the graph. Nodes must
+// currently implement `Hash`, or specify `#[depends(can_hash = false)].
+#[derive(Leaf, Default, Hash)]
 pub struct NumberInput {
     value: i32,
 }
@@ -47,7 +48,7 @@ pub struct Components {
 }
 
 // A `Dependee` i.e. its state is a pure transformation of other nodes
-#[derive(Dependee, Default)]
+#[derive(Dependee, Default, Hash)]
 #[depends(dependencies = Components)]
 pub struct Sum {
     value: i32,

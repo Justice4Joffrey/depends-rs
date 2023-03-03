@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependee.rs
-assertion_line: 236
+assertion_line: 267
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 pub struct SomeName {
@@ -62,6 +62,14 @@ impl ::depends::core::Resolve for SomeName {
         }
         visitor.leave(self);
         self.data.borrow()
+    }
+}
+impl ::depends::core::HashValue for Foo {
+    fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+        ::depends::core::NodeHash::Hashed({
+            self.hash(hasher);
+            hasher.finish()
+        })
     }
 }
 impl ::depends::core::Clean for Foo {

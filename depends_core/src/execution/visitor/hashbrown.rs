@@ -1,6 +1,6 @@
-use std::{collections::hash_map::DefaultHasher, hash::BuildHasher};
+use std::hash::BuildHasher;
 
-use hashbrown::{hash_map::DefaultHashBuilder, HashSet};
+use hashbrown::HashSet;
 
 use super::Visitor;
 use crate::execution::Identifiable;

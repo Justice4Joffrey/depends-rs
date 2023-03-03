@@ -1,5 +1,5 @@
 use std::{
-    hash::{BuildHasher, Hasher},
+    hash::Hasher,
     ops::{Deref, DerefMut},
 };
 

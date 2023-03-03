@@ -2,14 +2,11 @@
 pub mod hashbrown;
 
 use std::{
-    collections::{
-        hash_map::{DefaultHasher, RandomState},
-        BTreeSet, HashSet,
-    },
+    collections::{hash_map::DefaultHasher, HashSet},
     hash::{BuildHasher, Hasher},
 };
 
-use super::{HashValue, Identifiable};
+use super::Identifiable;
 
 /// A collection passed in to a graph, tracking the identifiers of each nodes to
 /// avoid traversing
