@@ -101,6 +101,9 @@
 //! and the output is a combination of many transformations on that input (and
 //! derivations of it), `depends` can help you produce scalable, performant,
 //! testable code out of the box.
+
+#![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
+
 pub mod core {
     pub use depends_core::execution::*;
 }

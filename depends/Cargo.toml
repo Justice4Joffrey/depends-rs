@@ -17,3 +17,9 @@ default = []
 graphviz = []
 hashbrown = ["depends_core/hashbrown"]
 
+
+[package.metadata.docs.rs]
+features = ["graphviz", "hashbrown"]
+no-default-features = true
+rustc-args = ["--cfg", "doc_cfg"]
+rustdoc-args = ["--cfg", "doc_cfg"]
