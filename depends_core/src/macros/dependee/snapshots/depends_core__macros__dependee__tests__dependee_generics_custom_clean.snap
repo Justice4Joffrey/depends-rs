@@ -1,6 +1,6 @@
 ---
-source: depends_core/src/macros/dependee.rs
-assertion_line: 295
+source: depends_core/src/macros/dependee/mod.rs
+assertion_line: 294
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {

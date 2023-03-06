@@ -24,7 +24,7 @@
 //! };
 //!
 //! // A `Leaf` is a node which takes new values from outside the graph. Nodes must currently
-//! // implement `Hash` or specify `#[depends(can_hash = false)]`.
+//! // implement `Hash`, attribute a hashable field as `#[depends(hash)]` or specify `#[depends(unhashable)]`.
 //! #[derive(Leaf, Default, Hash)]
 //! pub struct NumberInput {
 //!     value: i32,
@@ -101,6 +101,9 @@
 //! and the output is a combination of many transformations on that input (and
 //! derivations of it), `depends` can help you produce scalable, performant,
 //! testable code out of the box.
+
+#![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
+
 pub mod core {
     pub use depends_core::execution::*;
 }

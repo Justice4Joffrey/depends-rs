@@ -34,13 +34,18 @@ impl<T: Parse> Parse for DependsAttrs<T> {
     }
 }
 
-pub fn get_depends_attrs<T: Parse>(attrs: Vec<Attribute>) -> syn::Result<Vec<T>> {
+fn get_depends_attrs_res<T: Parse>(attrs: &[Attribute]) -> syn::Result<Vec<T>> {
     let mut res = Vec::new();
     for a in attrs {
         if a.path.is_ident(DEPENDS) {
-            let dep_attrs = parse2::<DependsAttrs<T>>(a.tokens)?;
+            let dep_attrs = parse2::<DependsAttrs<T>>(a.tokens.clone())?;
             dep_attrs.attrs.into_iter().for_each(|a| res.push(a))
         }
     }
     Ok(res)
+}
+
+pub fn get_depends_attrs<T: Parse>(attrs: &[Attribute]) -> Vec<T> {
+    get_depends_attrs_res(attrs)
+        .expect("attributes must be in the form \"#[depends(.. = .., ..)]\"")
 }

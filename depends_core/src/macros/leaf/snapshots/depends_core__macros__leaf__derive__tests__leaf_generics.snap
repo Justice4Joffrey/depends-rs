@@ -1,6 +1,6 @@
 ---
-source: depends_core/src/macros/leaf.rs
-assertion_line: 170
+source: depends_core/src/macros/leaf/derive.rs
+assertion_line: 140
 expression: format_source(derive_leaf(input).to_string().as_str())
 ---
 impl<T> ::depends::core::Named for Foo<T> {
