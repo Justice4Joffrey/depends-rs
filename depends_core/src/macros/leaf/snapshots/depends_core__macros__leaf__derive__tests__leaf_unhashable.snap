@@ -1,27 +1,24 @@
 ---
-source: depends_core/src/macros/leaf.rs
-assertion_line: 157
+source: depends_core/src/macros/leaf/derive.rs
+assertion_line: 169
 expression: format_source(derive_leaf(input).to_string().as_str())
 ---
-impl ::depends::core::Named for Foo {
+impl<T> ::depends::core::Named for Foo<T> {
     fn name() -> &'static str {
         "Foo"
     }
 }
-impl Foo {
+impl<T> Foo<T> {
     pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
         ::depends::core::LeafNode::new(self)
     }
 }
-impl ::depends::core::HashValue for Foo {
+impl<T> ::depends::core::HashValue for Foo<T> {
     fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
-        ::depends::core::NodeHash::Hashed({
-            self.hash(hasher);
-            hasher.finish()
-        })
+        ::depends::core::NodeHash::NotHashed
     }
 }
-impl ::depends::core::Clean for Foo {
+impl<T> ::depends::core::Clean for Foo<T> {
     fn clean(&mut self) {}
 }
 

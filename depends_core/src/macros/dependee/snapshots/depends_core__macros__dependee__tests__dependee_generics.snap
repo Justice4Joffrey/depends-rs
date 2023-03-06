@@ -1,23 +1,20 @@
 ---
-source: depends_core/src/macros/dependee.rs
-assertion_line: 309
+source: depends_core/src/macros/dependee/mod.rs
+assertion_line: 280
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {
-    dependencies: Dependency<Rc<SomeNode<Bar>>>,
+    dependencies: SomeDeps<D, E>,
     data: ::std::cell::RefCell<::depends::core::NodeState<Foo<T>>>,
     id: usize,
 }
 impl<T> FooNode<T> {
-    pub fn new(
-        dependencies: Dependency<Rc<SomeNode<Bar>>>,
-        data: Foo<T>,
-    ) -> ::std::rc::Rc<FooNode<T>> {
+    pub fn new(dependencies: SomeDeps<D, E>, data: Foo<T>) -> ::std::rc::Rc<FooNode<T>> {
         Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
     }
 
     pub fn new_with_id(
-        dependencies: Dependency<Rc<SomeNode<Bar>>>,
+        dependencies: SomeDeps<D, E>,
         data: Foo<T>,
         id: usize,
     ) -> ::std::rc::Rc<FooNode<T>> {
@@ -34,10 +31,7 @@ impl<T> ::depends::core::Identifiable for FooNode<T> {
     }
 }
 impl<T> Foo<T> {
-    pub fn into_node(
-        self,
-        dependencies: Dependency<Rc<SomeNode<Bar>>>,
-    ) -> ::std::rc::Rc<FooNode<T>> {
+    pub fn into_node(self, dependencies: SomeDeps<D, E>) -> ::std::rc::Rc<FooNode<T>> {
         FooNode::new(dependencies, self)
     }
 }
@@ -52,7 +46,7 @@ impl<T> ::depends::core::Named for FooNode<T> {
     }
 }
 impl<T> ::depends::core::Depends for Foo<T> {
-    type Input < 'a > = < Dependency < Rc < SomeNode < Bar > > > as :: depends :: core :: Resolve > :: Output < 'a > where Self : 'a ;
+    type Input < 'a > = < SomeDeps < D , E > as :: depends :: core :: Resolve > :: Output < 'a > where Self : 'a ;
 }
 impl<T> ::depends::core::Resolve for FooNode<T> {
     type Output < 'a > = :: std :: cell :: Ref < 'a , :: depends :: core :: NodeState < Foo >> where Self : 'a ;
@@ -81,5 +75,8 @@ impl<T> ::depends::core::HashValue for Foo<T> {
             hasher.finish()
         })
     }
+}
+impl<T> ::depends::core::Clean for Foo {
+    fn clean(&mut self) {}
 }
 

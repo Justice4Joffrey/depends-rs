@@ -24,7 +24,7 @@
 //! };
 //!
 //! // A `Leaf` is a node which takes new values from outside the graph. Nodes must currently
-//! // implement `Hash` or specify `#[depends(can_hash = false)]`.
+//! // implement `Hash`, attribute a hashable field as `#[depends(hash)]` or specify `#[depends(unhashable)]`.
 //! #[derive(Leaf, Default, Hash)]
 //! pub struct NumberInput {
 //!     value: i32,
