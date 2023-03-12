@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependencies.rs
-assertion_line: 124
+assertion_line: 125
 expression: "format_source(dependencies_attr(TokenStream::new(),\n                input).to_string().as_str())"
 ---
 struct Components {
@@ -24,7 +24,6 @@ impl Components {
 }
 impl ::depends::core::Resolve for Components {
     type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
-
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         ComponentsRef {
             node1: self.node1.resolve(visitor),

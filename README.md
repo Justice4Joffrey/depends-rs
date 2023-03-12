@@ -1,5 +1,10 @@
 # Depends
 
+[![Crates.io](https://img.shields.io/crates/v/depends.svg)](https://crates.io/crates/depends)
+[![Documentation](https://docs.rs/depends/badge.svg)](https://docs.rs/depends/)
+[![Codecov](https://codecov.io/github/Justice4Joffrey/depends/coverage.svg?branch=master)](https://codecov.io/gh/Justice4Joffrey/depends)
+[![Dependency status](https://deps.rs/repo/github/Justice4Joffrey/depends/status.svg)](https://deps.rs/repo/github/Justice4Joffrey/depends)
+
 A library for ergonomic, performant, incremental computation between
 arbitrary types.
 

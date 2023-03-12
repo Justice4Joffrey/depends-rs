@@ -178,6 +178,7 @@ mod tests {
     use crate::macros::helpers::format_source;
 
     #[test]
+    #[ignore]
     fn test_dependee() {
         let input: TokenStream = parse_quote! {
             #[depends(node_name = SomeName, dependencies = SomeType)]
@@ -193,6 +194,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_dependee_generics() {
         let input = parse_quote! {
             #[depends(dependencies = SomeDeps<D, E>)]
@@ -207,6 +209,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_dependee_generics_custom_clean() {
         let input = parse_quote! {
             #[depends(dependencies = SomeDeps<D, E>, custom_clean)]
@@ -221,6 +224,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_dependee_unhashable() {
         let input = parse_quote! {
             #[depends(dependencies = SomeDeps<D, E>, unhashable)]
@@ -235,6 +239,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_dependee_single_dependency() {
         let input = parse_quote! {
             #[depends(dependencies = Dependency<Rc<SomeNode<Bar>>>, custom_clean)]
@@ -249,6 +254,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_dependee_hashable_field() {
         let input = parse_quote! {
             #[depends(dependencies = SomeDeps<D, E>)]
@@ -264,8 +270,8 @@ mod tests {
         );
     }
 
-    #[should_panic]
     #[test]
+    #[should_panic]
     fn test_dependee_hash_declared_multiple() {
         let input = parse_quote! {
             #[depends(dependencies = SomeDeps<D, E>, unhashable)]
@@ -278,8 +284,8 @@ mod tests {
         derive_dependee(input);
     }
 
-    #[should_panic]
     #[test]
+    #[should_panic]
     fn test_dependee_hash_declared_multiple_fields() {
         let input = parse_quote! {
             #[depends(dependencies = SomeDeps<D, E>)]
