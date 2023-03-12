@@ -12,6 +12,7 @@ impl SomeName {
     pub fn new(dependencies: SomeType, data: Foo) -> ::std::rc::Rc<SomeName> {
         Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
     }
+
     pub fn new_with_id(dependencies: SomeType, data: Foo, id: usize) -> ::std::rc::Rc<SomeName> {
         ::std::rc::Rc::new(SomeName {
             dependencies,
@@ -45,6 +46,7 @@ impl ::depends::core::Depends for Foo {
 }
 impl ::depends::core::Resolve for SomeName {
     type Output < 'a > = :: std :: cell :: Ref < 'a , :: depends :: core :: NodeState < Foo >> where Self : 'a ;
+
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         use ::depends::core::{Clean, IsDirty};
         use ::std::ops::DerefMut;

@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/dependee/derive.rs
-assertion_line: 204
+assertion_line: 205
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {
@@ -12,6 +12,7 @@ impl<T> FooNode<T> {
     pub fn new(dependencies: SomeDeps<D, E>, data: Foo<T>) -> ::std::rc::Rc<FooNode<T>> {
         Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
     }
+
     pub fn new_with_id(
         dependencies: SomeDeps<D, E>,
         data: Foo<T>,
@@ -49,6 +50,7 @@ impl<T> ::depends::core::Depends for Foo<T> {
 }
 impl<T> ::depends::core::Resolve for FooNode<T> {
     type Output < 'a > = :: std :: cell :: Ref < 'a , :: depends :: core :: NodeState < Foo >> where Self : 'a ;
+
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         use ::depends::core::{Clean, IsDirty};
         use ::std::ops::DerefMut;
