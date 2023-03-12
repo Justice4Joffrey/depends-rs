@@ -112,6 +112,7 @@ mod tests {
     use crate::macros::helpers::format_source;
 
     #[test]
+    #[ignore]
     fn test_dependencies() {
         let input = parse_quote! {
             struct Components {

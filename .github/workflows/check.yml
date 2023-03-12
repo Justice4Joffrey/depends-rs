@@ -8,17 +8,17 @@ name: check
 jobs:
   fmt:
     runs-on: ubuntu-latest
-    name: stable / fmt
+    name: nightly / fmt
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Install stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-      - name: cargo fmt --check
-        run: cargo fmt --check
+      - name: cargo +nightly fmt --check
+        run: cargo +nightly fmt --check
   clippy:
     runs-on: ubuntu-latest
     name: ${{ matrix.toolchain }} / clippy
@@ -67,14 +67,14 @@ jobs:
       - name: cargo install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: cargo hack
-        run: cargo hack --feature-powerset check --lib --tests
+        run: cargo hack --feature-powerset check --lib --tests --ignore-private
   msrv:
     runs-on: ubuntu-latest
     # we use a matrix here just because env can't be used in job names
     # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
     strategy:
       matrix:
-        msrv: [1.56.1] # 2021 edition requires 1.56
+        msrv: [1.65] # GATs edition requires 1.65
     name: ubuntu / ${{ matrix.msrv }}
     steps:
       - uses: actions/checkout@v3

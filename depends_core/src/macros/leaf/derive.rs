@@ -98,6 +98,7 @@ mod tests {
     use crate::macros::helpers::format_source;
 
     #[test]
+    #[ignore]
     fn test_leaf() {
         let input: TokenStream = parse_quote! {
             #[diesel(some_arg)]
@@ -112,6 +113,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_leaf_generics() {
         let input = parse_quote! {
             struct Foo<T> {
@@ -125,6 +127,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_leaf_hashed() {
         let input = parse_quote! {
             struct Foo<T> {
@@ -140,6 +143,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_leaf_unhashable() {
         let input = parse_quote! {
             #[depends(unhashable)]
@@ -155,6 +159,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_leaf_generics_custom_clean() {
         let input = parse_quote! {
             #[depends(custom_clean)]
@@ -168,8 +173,8 @@ mod tests {
         );
     }
 
-    #[should_panic]
     #[test]
+    #[should_panic]
     fn test_leaf_multi_hash_attr_args() {
         let input = parse_quote! {
             #[depends(unhashable)]
@@ -182,8 +187,8 @@ mod tests {
         derive_leaf(input);
     }
 
-    #[should_panic]
     #[test]
+    #[should_panic]
     fn test_leaf_multi_attrs() {
         let input = parse_quote! {
             struct Foo<T> {

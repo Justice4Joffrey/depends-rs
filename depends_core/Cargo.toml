@@ -14,7 +14,7 @@ quote = "1"
 syn = { version = "1", features = ["full"] }
 
 [dev-dependencies]
-colored-diff = "0.2"
+colored-diff = "0.2.3"
 insta = "1.26"
 
 [features]
