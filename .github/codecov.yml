@@ -13,7 +13,9 @@ coverage:
 
 # Test files aren't important for coverage
 ignore:
-  - "tests"
+  - "depends_derives"
+  - "depends_tests"
+  - "examples"
 
 # Make comments less noisy
 comment:

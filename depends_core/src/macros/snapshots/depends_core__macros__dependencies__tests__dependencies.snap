@@ -24,6 +24,7 @@ impl Components {
 }
 impl ::depends::core::Resolve for Components {
     type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
+
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         ComponentsRef {
             node1: self.node1.resolve(visitor),
