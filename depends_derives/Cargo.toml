@@ -11,7 +11,7 @@ depends_core = {path = "../depends_core", version = "0.4.0"}
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
-syn = "1"
+syn = "2"
 
 [lib]
 proc-macro = true
