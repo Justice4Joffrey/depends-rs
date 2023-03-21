@@ -1,10 +1,9 @@
 use syn::{
-    parenthesized,
     parse::{Parse, ParseStream},
     parse2,
     punctuated::Punctuated,
-    token::{Comma, Paren},
-    Attribute,
+    token::Comma,
+    Attribute, Meta,
 };
 
 /// The attribute outer token.
@@ -26,10 +25,8 @@ struct DependsAttrs<T> {
 
 impl<T: Parse> Parse for DependsAttrs<T> {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content;
-        let _: Paren = parenthesized!(content in input);
         Ok(Self {
-            attrs: content.parse_terminated(T::parse)?,
+            attrs: input.parse_terminated(T::parse, Comma)?,
         })
     }
 }
@@ -37,9 +34,13 @@ impl<T: Parse> Parse for DependsAttrs<T> {
 fn get_depends_attrs_res<T: Parse>(attrs: &[Attribute]) -> syn::Result<Vec<T>> {
     let mut res = Vec::new();
     for a in attrs {
-        if a.path.is_ident(DEPENDS) {
-            let dep_attrs = parse2::<DependsAttrs<T>>(a.tokens.clone())?;
-            dep_attrs.attrs.into_iter().for_each(|a| res.push(a))
+        if a.path().is_ident(DEPENDS) {
+            if let Meta::List(l) = &a.meta {
+                let dep_attrs = parse2::<DependsAttrs<T>>(l.tokens.clone())?;
+                dep_attrs.attrs.into_iter().for_each(|a| res.push(a))
+            } else {
+                return Err(syn::Error::new_spanned(a, "invalid attribute format"));
+            }
         }
     }
     Ok(res)
