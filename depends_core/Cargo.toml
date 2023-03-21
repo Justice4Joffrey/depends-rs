@@ -11,7 +11,7 @@ hashbrown = { version = "0.13", optional = true, features = ["ahash"]}
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
-syn = { version = "1", features = ["full"] }
+syn = { version = "2", features = ["full"] }
 
 [dev-dependencies]
 colored-diff = "0.2.3"
