@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "depends"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "depends_core",
  "depends_derives",
@@ -68,7 +68,7 @@ dependencies = [
 
 [[package]]
 name = "depends_core"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "ahash",
  "colored-diff",
@@ -82,7 +82,7 @@ dependencies = [
 
 [[package]]
 name = "depends_derives"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "depends_core",
  "proc-macro-error",
