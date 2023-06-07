@@ -45,7 +45,7 @@ pub fn dependencies_attr(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut dirty_field_args = Vec::<TokenStream>::new();
     fields.into_iter().for_each(|Field { vis, ident, ty, .. }| {
         let ident = ident.expect("struct fields must be named.");
-        let new_type = quote! { Dependency<Rc<#ty>> };
+        let new_type = quote! { ::depends::core::Dependency<::std::rc::Rc<#ty>> };
         new_fields.extend(quote! {
             #vis #ident: #new_type,
         });
@@ -53,10 +53,10 @@ pub fn dependencies_attr(args: TokenStream, input: TokenStream) -> TokenStream {
             #vis #ident: <#new_type as ::depends::core::Resolve>::Output<'a>,
         });
         field_args.extend(quote! {
-            #ident: Rc<#ty>,
+            #ident: ::std::rc::Rc<#ty>,
         });
         field_new_args.extend(quote! {
-            #ident: Dependency::new(#ident),
+            #ident: ::depends::core::Dependency::new(#ident),
         });
         field_resolves.extend(quote! {
             #ident: self.#ident.resolve(visitor),
