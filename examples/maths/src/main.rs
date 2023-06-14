@@ -115,7 +115,7 @@ fn main() {
 
     // check the graphviz of this graph is as expected.
     let mut gv_visitor = GraphvizVisitor::new();
-    graph.answer.resolve(&mut gv_visitor);
+    drop(graph.answer.resolve(&mut gv_visitor));
 
     assert_eq!(
         r#"

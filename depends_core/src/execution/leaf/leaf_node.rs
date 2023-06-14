@@ -1,4 +1,6 @@
-use std::{cell::RefCell, ops::DerefMut, sync::Arc};
+use std::{ops::DerefMut, sync::Arc};
+
+use parking_lot::RwLock;
 
 use crate::execution::{
     identifiable::next_node_id, Clean, Identifiable, LeafNodeState, LeafState, Named, NodeRef,
@@ -8,7 +10,7 @@ use crate::execution::{
 /// A node which has no dependencies. Leaf nodes receive their state from
 /// _outside_ of the graph structure from calls to [update](Self::update).
 pub struct LeafNode<T> {
-    data: RefCell<NodeState<T, LeafNodeState>>,
+    data: RwLock<NodeState<T, LeafNodeState>>,
     id: usize,
 }
 
@@ -36,14 +38,14 @@ where
     /// Create this node with a specified Id. Useful for tests.
     pub fn new_with_id(data: T, id: usize) -> Arc<LeafNode<T>> {
         Arc::new(Self {
-            data: RefCell::new(NodeState::new_leaf(data)),
+            data: RwLock::new(NodeState::new_leaf(data)),
             id,
         })
     }
 
     /// The public interface to provide data to mutate the inner leaf.
     pub fn update(&self, input: T::Input) {
-        let mut node_state = self.data.borrow_mut();
+        let mut node_state = self.data.write();
         // Flush any changes since it was resolved.
         if node_state.state() == LeafState::Resolving {
             node_state.clean();
@@ -62,7 +64,7 @@ where
     fn resolve(&self, visitor: &mut impl Visitor) -> Self::Output<'_> {
         visitor.touch(self);
         if visitor.visit(self) {
-            let mut node_state = self.data.borrow_mut();
+            let mut node_state = self.data.write();
             // Ensures `update` changes are only flushed once.
             match node_state.state() {
                 LeafState::Updating => *node_state.state_mut() = LeafState::Resolving,
@@ -76,6 +78,6 @@ where
             node_state.update_node_hash(&mut visitor.hasher());
         }
         visitor.leave(self);
-        self.data.borrow()
+        self.data.read()
     }
 }

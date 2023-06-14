@@ -5,7 +5,7 @@ use depends::{core::Resolve, graphviz::GraphvizVisitor};
 fn test_graphviz() {
     let graph = common::my_graph();
     let mut visitor = GraphvizVisitor::new();
-    graph.answer.resolve(&mut visitor);
+    drop(graph.answer.resolve(&mut visitor));
 
     assert_eq!(
         r#"

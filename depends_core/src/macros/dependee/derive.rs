@@ -83,7 +83,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
     quote! {
         #vis struct #node_ident #generics {
             dependencies: #dependencies_ty,
-            data: ::std::cell::RefCell<::depends::core::NodeState<#ident #generics>>,
+            data: depends::core::sync::RwLock<::depends::core::NodeState<#ident #generics>>,
             id: usize
         }
 
@@ -96,7 +96,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                 ::std::sync::Arc::new(
                     #node_ident {
                         dependencies,
-                        data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
+                        data: depends::core::sync::RwLock::new(::depends::core::NodeState::new_dependee(data)),
                         id
                     }
                 )
@@ -138,7 +138,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
         }
 
         impl #impl_generics ::depends::core::Resolve for #node_ident #ty_generics #where_clause {
-            type Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<#ident>> where Self: 'a;
+            type Output<'a> = ::depends::core::sync::RwLockReadGuard<'a, ::depends::core::NodeState<#ident>> where Self: 'a;
 
             fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
                 use ::depends::core::{IsDirty, Clean};
@@ -148,14 +148,14 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
                 if visitor.visit(self) {
                     let input = self.dependencies.resolve(visitor);
                     if input.is_dirty() {
-                        let mut node_state = self.data.borrow_mut();
+                        let mut node_state = self.data.write();
                         node_state.clean();
                         node_state.deref_mut().update_mut(input);
                         node_state.update_node_hash(&mut visitor.hasher());
                     }
                 }
                 visitor.leave(self);
-                self.data.borrow()
+                self.data.read()
             }
         }
 

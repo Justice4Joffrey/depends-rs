@@ -5,7 +5,7 @@ expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {
     dependencies: SomeDeps<D, E>,
-    data: ::std::cell::RefCell<::depends::core::NodeState<Foo<T>>>,
+    data: depends::core::sync::RwLock<::depends::core::NodeState<Foo<T>>>,
     id: usize,
 }
 impl<T> FooNode<T> {
@@ -20,7 +20,7 @@ impl<T> FooNode<T> {
     ) -> ::std::sync::Arc<FooNode<T>> {
         ::std::sync::Arc::new(FooNode {
             dependencies,
-            data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
+            data: depends::core::sync::RwLock::new(::depends::core::NodeState::new_dependee(data)),
             id,
         })
     }

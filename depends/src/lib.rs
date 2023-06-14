@@ -105,8 +105,9 @@
 #![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
 
 pub mod core {
-    pub use depends_core::execution::*;
+    pub use depends_core::{execution::*, sync};
 }
+
 pub mod derives {
     pub use depends_derives::*;
 }

@@ -1,10 +1,9 @@
 mod dep_ref;
 mod dep_state;
 
-use std::cell::RefCell;
-
 pub use dep_ref::DepRef;
 pub use dep_state::DependencyState;
+use parking_lot::RwLock;
 
 use super::{HashValue, Identifiable, Named, NodeHash, Resolve};
 
@@ -14,7 +13,7 @@ use super::{HashValue, Identifiable, Named, NodeHash, Resolve};
 #[derive(Debug)]
 pub struct Dependency<T> {
     /// The state observed of the inner dependency when it was last resolved.
-    last_state: RefCell<Option<NodeHash>>,
+    last_state: RwLock<Option<NodeHash>>,
     /// The wrapped node.
     dependency: T,
 }
@@ -25,7 +24,7 @@ where
 {
     pub fn new(dependency: T) -> Self {
         Self {
-            last_state: RefCell::new(None),
+            last_state: RwLock::new(None),
             dependency,
         }
     }
@@ -42,7 +41,7 @@ where
         Self: 'a;
 
     fn resolve(&self, visitor: &mut impl super::Visitor) -> Self::Output<'_> {
-        let mut last_state = self.last_state.borrow_mut();
+        let mut last_state = self.last_state.write();
         let data = self.dependency.resolve(visitor);
         let current_state = data.hash_value(&mut visitor.hasher());
         if last_state.map(|s| s == current_state).unwrap_or(false) {

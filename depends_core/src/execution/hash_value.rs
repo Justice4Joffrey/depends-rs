@@ -1,4 +1,6 @@
-use std::{cell::Ref, hash::Hasher, ops::Deref};
+use std::{hash::Hasher, ops::Deref};
+
+use parking_lot::RwLockReadGuard;
 
 use super::{NodeHash, NodeState};
 
@@ -9,7 +11,7 @@ pub trait HashValue {
     fn hash_value(&self, hasher: &mut impl Hasher) -> NodeHash;
 }
 
-impl<T: HashValue, N> HashValue for Ref<'_, NodeState<T, N>> {
+impl<T: HashValue, N> HashValue for RwLockReadGuard<'_, NodeState<T, N>> {
     fn hash_value(&self, hasher: &mut impl Hasher) -> NodeHash {
         self.deref().hash_value(hasher)
     }

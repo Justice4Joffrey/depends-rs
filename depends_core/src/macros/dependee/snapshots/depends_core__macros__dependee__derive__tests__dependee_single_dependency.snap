@@ -5,7 +5,7 @@ expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {
     dependencies: Dependency<Arc<SomeNode<Bar>>>,
-    data: ::std::cell::RefCell<::depends::core::NodeState<Foo<T>>>,
+    data: depends::core::sync::RwLock<::depends::core::NodeState<Foo<T>>>,
     id: usize,
 }
 impl<T> FooNode<T> {
@@ -23,7 +23,7 @@ impl<T> FooNode<T> {
     ) -> ::std::sync::Arc<FooNode<T>> {
         ::std::sync::Arc::new(FooNode {
             dependencies,
-            data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
+            data: depends::core::sync::RwLock::new(::depends::core::NodeState::new_dependee(data)),
             id,
         })
     }
@@ -55,7 +55,7 @@ impl<T> ::depends::core::Depends for Foo<T> {
     type Input < 'a > = < Dependency < Arc < SomeNode < Bar > > > as :: depends :: core :: Resolve > :: Output < 'a > where Self : 'a ;
 }
 impl<T> ::depends::core::Resolve for FooNode<T> {
-    type Output < 'a > = :: std :: cell :: Ref < 'a , :: depends :: core :: NodeState < Foo >> where Self : 'a ;
+    type Output < 'a > = :: depends :: core :: sync :: RwLockReadGuard < 'a , :: depends :: core :: NodeState < Foo >> where Self : 'a ;
 
     fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
         use ::depends::core::{Clean, IsDirty};
@@ -64,14 +64,14 @@ impl<T> ::depends::core::Resolve for FooNode<T> {
         if visitor.visit(self) {
             let input = self.dependencies.resolve(visitor);
             if input.is_dirty() {
-                let mut node_state = self.data.borrow_mut();
+                let mut node_state = self.data.write();
                 node_state.clean();
                 node_state.deref_mut().update_mut(input);
                 node_state.update_node_hash(&mut visitor.hasher());
             }
         }
         visitor.leave(self);
-        self.data.borrow()
+        self.data.read()
     }
 }
 impl<T> ::depends::core::HashValue for Foo<T> {
