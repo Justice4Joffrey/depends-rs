@@ -88,12 +88,12 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
         }
 
         impl #impl_generics #node_ident #ty_generics #where_clause {
-            pub fn new(dependencies: #dependencies_ty, data: #ident #ty_generics) -> ::std::rc::Rc<#node_ident #ty_generics> {
+            pub fn new(dependencies: #dependencies_ty, data: #ident #ty_generics) -> ::std::sync::Arc<#node_ident #ty_generics> {
                 Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
             }
 
-            pub fn new_with_id(dependencies: #dependencies_ty, data: #ident #ty_generics, id: usize) -> ::std::rc::Rc<#node_ident #ty_generics> {
-                ::std::rc::Rc::new(
+            pub fn new_with_id(dependencies: #dependencies_ty, data: #ident #ty_generics, id: usize) -> ::std::sync::Arc<#node_ident #ty_generics> {
+                ::std::sync::Arc::new(
                     #node_ident {
                         dependencies,
                         data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
@@ -110,7 +110,7 @@ pub fn derive_dependee(input: TokenStream) -> TokenStream {
         }
 
         impl #impl_generics #ident #ty_generics #where_clause {
-            pub fn into_node(self, dependencies: #dependencies_ty) -> ::std::rc::Rc<#node_ident #ty_generics> {
+            pub fn into_node(self, dependencies: #dependencies_ty) -> ::std::sync::Arc<#node_ident #ty_generics> {
                 #node_ident::new(
                     dependencies,
                     self,
@@ -242,7 +242,7 @@ mod tests {
     #[ignore]
     fn test_dependee_single_dependency() {
         let input = parse_quote! {
-            #[depends(dependencies = Dependency<Rc<SomeNode<Bar>>>, custom_clean)]
+            #[depends(dependencies = Dependency<Arc<SomeNode<Bar>>>, custom_clean)]
             struct Foo<T> {
                 bar: Vec<usize>
             }

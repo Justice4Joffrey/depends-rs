@@ -1,6 +1,6 @@
-use std::{
-    rc::Rc,
-    sync::atomic::{AtomicUsize, Ordering},
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
 };
 
 use super::Named;
@@ -21,7 +21,7 @@ pub trait Identifiable: Named {
     fn id(&self) -> usize;
 }
 
-impl<T> Identifiable for Rc<T>
+impl<T> Identifiable for Arc<T>
 where
     T: Identifiable,
 {

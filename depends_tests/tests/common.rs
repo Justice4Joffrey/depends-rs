@@ -2,7 +2,7 @@
 
 use std::{
     hash::{Hash, Hasher},
-    rc::Rc,
+    sync::Arc,
 };
 
 use depends::{
@@ -47,7 +47,7 @@ pub struct Answer {
 }
 
 #[derive(Dependee, Default, Hash)]
-#[depends(dependencies = Dependency<Rc<LeafNode<NumberInput>>>, node_name = SquareNode)]
+#[depends(dependencies = Dependency<Arc<LeafNode<NumberInput>>>, node_name = SquareNode)]
 pub struct Square {
     value: i32,
 }
@@ -92,10 +92,10 @@ impl UpdateDependee for Multiply {
 }
 
 pub struct MyGraph {
-    pub a: Rc<LeafNode<NumberInput>>,
-    pub b: Rc<LeafNode<NumberInput>>,
-    pub c: Rc<LeafNode<NumberInput>>,
-    pub answer: Rc<AnswerNode>,
+    pub a: Arc<LeafNode<NumberInput>>,
+    pub b: Arc<LeafNode<NumberInput>>,
+    pub c: Arc<LeafNode<NumberInput>>,
+    pub answer: Arc<AnswerNode>,
 }
 
 pub fn my_graph() -> MyGraph {
@@ -103,10 +103,12 @@ pub fn my_graph() -> MyGraph {
     let b = NumberInput::default().into_leaf();
     let c = NumberInput::default().into_leaf();
 
-    let sum = Sum::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&b)));
-    let multiply = Multiply::default().into_node(Components::new(Rc::clone(&a), Rc::clone(&c)));
-    let answer =
-        Answer::default().into_node(AnswerComponents::new(Rc::clone(&sum), Rc::clone(&multiply)));
+    let sum = Sum::default().into_node(Components::new(Arc::clone(&a), Arc::clone(&b)));
+    let multiply = Multiply::default().into_node(Components::new(Arc::clone(&a), Arc::clone(&c)));
+    let answer = Answer::default().into_node(AnswerComponents::new(
+        Arc::clone(&sum),
+        Arc::clone(&multiply),
+    ));
 
     MyGraph { a, b, c, answer }
 }

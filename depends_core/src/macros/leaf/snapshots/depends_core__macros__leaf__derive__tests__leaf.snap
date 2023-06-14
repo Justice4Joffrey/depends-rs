@@ -9,7 +9,7 @@ impl ::depends::core::Named for Foo {
     }
 }
 impl Foo {
-    pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
+    pub fn into_leaf(self) -> ::std::sync::Arc<::depends::core::LeafNode<Self>> {
         ::depends::core::LeafNode::new(self)
     }
 }

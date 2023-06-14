@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{cell::RefCell, ops::DerefMut, sync::Arc};
 
 use crate::execution::{
     identifiable::next_node_id, Clean, Identifiable, LeafNodeState, LeafState, Named, NodeRef,
@@ -29,13 +29,13 @@ where
     T: UpdateLeaf,
 {
     /// Wrap this leaf in a node.
-    pub fn new(data: T) -> Rc<LeafNode<T>> {
+    pub fn new(data: T) -> Arc<LeafNode<T>> {
         Self::new_with_id(data, next_node_id())
     }
 
     /// Create this node with a specified Id. Useful for tests.
-    pub fn new_with_id(data: T, id: usize) -> Rc<LeafNode<T>> {
-        Rc::new(Self {
+    pub fn new_with_id(data: T, id: usize) -> Arc<LeafNode<T>> {
+        Arc::new(Self {
             data: RefCell::new(NodeState::new_leaf(data)),
             id,
         })

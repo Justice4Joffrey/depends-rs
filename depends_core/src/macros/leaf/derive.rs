@@ -74,7 +74,7 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
         }
 
         impl #impl_generics #ident #ty_generics #where_clause {
-            pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
+            pub fn into_leaf(self) -> ::std::sync::Arc<::depends::core::LeafNode<Self>> {
                 ::depends::core::LeafNode::new(self)
             }
         }

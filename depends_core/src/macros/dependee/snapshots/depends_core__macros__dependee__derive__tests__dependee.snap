@@ -9,12 +9,12 @@ pub struct SomeName {
     id: usize,
 }
 impl SomeName {
-    pub fn new(dependencies: SomeType, data: Foo) -> ::std::rc::Rc<SomeName> {
+    pub fn new(dependencies: SomeType, data: Foo) -> ::std::sync::Arc<SomeName> {
         Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
     }
 
-    pub fn new_with_id(dependencies: SomeType, data: Foo, id: usize) -> ::std::rc::Rc<SomeName> {
-        ::std::rc::Rc::new(SomeName {
+    pub fn new_with_id(dependencies: SomeType, data: Foo, id: usize) -> ::std::sync::Arc<SomeName> {
+        ::std::sync::Arc::new(SomeName {
             dependencies,
             data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
             id,
@@ -27,7 +27,7 @@ impl ::depends::core::Identifiable for SomeName {
     }
 }
 impl Foo {
-    pub fn into_node(self, dependencies: SomeType) -> ::std::rc::Rc<SomeName> {
+    pub fn into_node(self, dependencies: SomeType) -> ::std::sync::Arc<SomeName> {
         SomeName::new(dependencies, self)
     }
 }

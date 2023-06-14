@@ -4,24 +4,24 @@ assertion_line: 250
 expression: format_source(derive_dependee(input).to_string().as_str())
 ---
 struct FooNode<T> {
-    dependencies: Dependency<Rc<SomeNode<Bar>>>,
+    dependencies: Dependency<Arc<SomeNode<Bar>>>,
     data: ::std::cell::RefCell<::depends::core::NodeState<Foo<T>>>,
     id: usize,
 }
 impl<T> FooNode<T> {
     pub fn new(
-        dependencies: Dependency<Rc<SomeNode<Bar>>>,
+        dependencies: Dependency<Arc<SomeNode<Bar>>>,
         data: Foo<T>,
-    ) -> ::std::rc::Rc<FooNode<T>> {
+    ) -> ::std::sync::Arc<FooNode<T>> {
         Self::new_with_id(dependencies, data, ::depends::core::next_node_id())
     }
 
     pub fn new_with_id(
-        dependencies: Dependency<Rc<SomeNode<Bar>>>,
+        dependencies: Dependency<Arc<SomeNode<Bar>>>,
         data: Foo<T>,
         id: usize,
-    ) -> ::std::rc::Rc<FooNode<T>> {
-        ::std::rc::Rc::new(FooNode {
+    ) -> ::std::sync::Arc<FooNode<T>> {
+        ::std::sync::Arc::new(FooNode {
             dependencies,
             data: ::std::cell::RefCell::new(::depends::core::NodeState::new_dependee(data)),
             id,
@@ -36,8 +36,8 @@ impl<T> ::depends::core::Identifiable for FooNode<T> {
 impl<T> Foo<T> {
     pub fn into_node(
         self,
-        dependencies: Dependency<Rc<SomeNode<Bar>>>,
-    ) -> ::std::rc::Rc<FooNode<T>> {
+        dependencies: Dependency<Arc<SomeNode<Bar>>>,
+    ) -> ::std::sync::Arc<FooNode<T>> {
         FooNode::new(dependencies, self)
     }
 }
@@ -52,7 +52,7 @@ impl<T> ::depends::core::Named for FooNode<T> {
     }
 }
 impl<T> ::depends::core::Depends for Foo<T> {
-    type Input < 'a > = < Dependency < Rc < SomeNode < Bar > > > as :: depends :: core :: Resolve > :: Output < 'a > where Self : 'a ;
+    type Input < 'a > = < Dependency < Arc < SomeNode < Bar > > > as :: depends :: core :: Resolve > :: Output < 'a > where Self : 'a ;
 }
 impl<T> ::depends::core::Resolve for FooNode<T> {
     type Output < 'a > = :: std :: cell :: Ref < 'a , :: depends :: core :: NodeState < Foo >> where Self : 'a ;
