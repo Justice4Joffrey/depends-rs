@@ -1,16 +1,11 @@
 ---
-source: depends_core/src/macros/leaf/derive.rs
-assertion_line: 126
-expression: format_source(derive_leaf(input).to_string().as_str())
+source: depends_core/src/macros/value/derive.rs
+assertion_line: 101
+expression: format_source(derive_value(input).to_string().as_str())
 ---
 impl ::depends::core::Named for Foo {
     fn name() -> &'static str {
         "Foo"
-    }
-}
-impl Foo {
-    pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
-        ::depends::core::LeafNode::new(self)
     }
 }
 impl ::depends::core::HashValue for Foo {

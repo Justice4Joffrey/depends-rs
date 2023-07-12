@@ -1,12 +1,16 @@
 mod dep_ref;
 mod dep_state;
 
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 
 pub use dep_ref::DepRef;
 pub use dep_state::DependencyState;
 
 use super::{HashValue, Identifiable, Named, NodeHash, Resolve};
+use crate::execution::{error::ResolveResult, NodeState};
+
+/// Short-hand for a reference to a single dependency.
+pub type SingleRef<'a, T> = DepRef<'a, Ref<'a, NodeState<T>>>;
 
 /// Wraps a dependency and tracks the hashed value each time it's resolved. This
 /// allows the resolver to know if a dependency is 'dirty' from the perspective
@@ -41,15 +45,15 @@ where
     where
         Self: 'a;
 
-    fn resolve(&self, visitor: &mut impl super::Visitor) -> Self::Output<'_> {
-        let mut last_state = self.last_state.borrow_mut();
-        let data = self.dependency.resolve(visitor);
+    fn resolve(&self, visitor: &mut impl super::Visitor) -> ResolveResult<Self::Output<'_>> {
+        let mut last_state = self.last_state.try_borrow_mut()?;
+        let data = self.dependency.resolve(visitor)?;
         let current_state = data.hash_value(&mut visitor.hasher());
         if last_state.map(|s| s == current_state).unwrap_or(false) {
-            DepRef::new(DependencyState::Clean, data)
+            Ok(DepRef::new(DependencyState::Clean, data))
         } else {
             (*last_state) = Some(current_state);
-            DepRef::new(DependencyState::Dirty, data)
+            Ok(DepRef::new(DependencyState::Dirty, data))
         }
     }
 }

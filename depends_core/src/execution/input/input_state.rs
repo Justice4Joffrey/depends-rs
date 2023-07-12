@@ -1,7 +1,7 @@
 /// Used to ensure that pending data is resolved at most once between calls to
 /// `update`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Default)]
-pub enum LeafState {
+pub enum InputState {
     /// This node is being updated.
     #[default]
     Updating,

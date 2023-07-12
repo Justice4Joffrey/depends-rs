@@ -6,8 +6,8 @@
 <!-- 2 -->
 <g id="node1" class="node">
 <title>2</title>
-<ellipse fill="none" stroke="#000000" cx="135.0623" cy="-18" rx="28.9929" ry="18"/>
-<text text-anchor="middle" x="135.0623" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">Sum</text>
+<ellipse fill="none" stroke="#000000" cx="135.0623" cy="-18" rx="63.1247" ry="18"/>
+<text text-anchor="middle" x="135.0623" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">NumberInput</text>
 </g>
 <!-- 0 -->
 <g id="node2" class="node">
@@ -18,8 +18,8 @@
 <!-- 0&#45;&gt;2 -->
 <g id="edge1" class="edge">
 <title>0-&gt;2</title>
-<path fill="none" stroke="#000000" d="M80.4915,-72.5708C90.1366,-62.9258 102.2307,-50.8316 112.5807,-40.4816"/>
-<polygon fill="#000000" stroke="#000000" points="115.1527,-42.8594 119.7489,-33.3134 110.203,-37.9096 115.1527,-42.8594"/>
+<path fill="none" stroke="#000000" d="M80.4915,-72.5708C89.446,-63.6164 100.5113,-52.551 110.3322,-42.7302"/>
+<polygon fill="#000000" stroke="#000000" points="112.9479,-45.0642 117.5441,-35.5182 107.9981,-40.1145 112.9479,-45.0642"/>
 </g>
 <!-- 1 -->
 <g id="node3" class="node">
@@ -30,8 +30,8 @@
 <!-- 1&#45;&gt;2 -->
 <g id="edge2" class="edge">
 <title>1-&gt;2</title>
-<path fill="none" stroke="#000000" d="M189.6331,-72.5708C179.9881,-62.9258 167.894,-50.8316 157.544,-40.4816"/>
-<polygon fill="#000000" stroke="#000000" points="159.9217,-37.9096 150.3757,-33.3134 154.9719,-42.8594 159.9217,-37.9096"/>
+<path fill="none" stroke="#000000" d="M189.6331,-72.5708C180.6787,-63.6164 169.6133,-52.551 159.7925,-42.7302"/>
+<polygon fill="#000000" stroke="#000000" points="162.1265,-40.1145 152.5806,-35.5182 157.1768,-45.0642 162.1265,-40.1145"/>
 </g>
 </g>
 </svg>

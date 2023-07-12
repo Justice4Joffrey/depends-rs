@@ -1,22 +1,22 @@
 use super::{Clean, HashValue};
 use crate::execution::Named;
 
-/// Describe a `Leaf` node's input, and how that mutates the internal state.
-/// Correct implentation of this trait requires that any temporary state tracked
-/// is cleared up when implementing [Clean](super::Clean).
+/// Describe how to update an [InputNode](super::InputNode) value, and how
+/// that mutates the internal state. Correct implementation of this trait
+/// requires that any temporary state tracked is cleared up when implementing
+/// [Clean](super::Clean).
 ///
 /// # Example
 ///
 /// It's not uncommon for a node which wraps a (potentially large) collection to
 /// want to provide dependent nodes an accessor to know which of those have
 /// changed since this node was last resolved. _Correct_ implementation of that
-/// pattern requires implementation of [Clean](super::Clean), alongside
-/// [UpdateDependee](super::UpdateDependee).
+/// pattern requires implementation of [Clean](super::Clean).
 ///
 /// ```
-/// # use depends_core::execution::{Clean, HashValue, Named, NodeHash, UpdateLeaf};
+/// # use depends_core::execution::{Clean, HashValue, Named, NodeHash, UpdateInput};
 /// # use std::hash::Hasher;
-/// #[derive(Default)]
+/// # #[derive(Default)]
 /// pub struct MyNode {
 ///     // Appends every item to this collection.
 ///     all_things: Vec<i32>,
@@ -31,10 +31,10 @@ use crate::execution::Named;
 /// #     fn hash_value(&self, _: &mut impl Hasher) -> NodeHash { unimplemented!() }
 /// # }
 ///
-/// impl UpdateLeaf for MyNode {
-///     type Input = i32;
+/// impl UpdateInput for MyNode {
+///     type Update = i32;
 ///
-///     fn update_mut(&mut self, input: Self::Input) {
+///     fn update_mut(&mut self, input: Self::Update) {
 ///         self.all_things.push(input)
 ///     }
 /// }
@@ -90,8 +90,8 @@ use crate::execution::Named;
 /// values would be displayed to dependent nodes _after_ this node had been
 /// cleaned. This is an unsound implementation, which violates the caching logic
 /// of `depends`.
-pub trait UpdateLeaf: Named + HashValue + Clean {
-    type Input;
+pub trait UpdateInput: Named + HashValue + Clean {
+    type Update;
 
-    fn update_mut(&mut self, input: Self::Input);
+    fn update_mut(&mut self, update: Self::Update);
 }

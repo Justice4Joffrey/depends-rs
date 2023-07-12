@@ -2,14 +2,14 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{parse2, Data, DeriveInput, Field};
 
-use super::parsed_attrs::LeafParsedAttrs;
+use super::parsed_attrs::ValueParsedAttrs;
 use crate::macros::{
-    leaf::LeafAttrModel,
     model::{get_depends_attrs, FieldAttrs},
+    value::ValueAttrModel,
     HashLogic,
 };
 
-pub fn derive_leaf(input: TokenStream) -> TokenStream {
+pub fn derive_value(input: TokenStream) -> TokenStream {
     let DeriveInput {
         ident,
         data,
@@ -41,11 +41,11 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
             })
             .collect();
 
-        let model = LeafAttrModel {
+        let model = ValueAttrModel {
             struct_attrs,
             field_attrs,
         };
-        let parsed: LeafParsedAttrs = model.try_into().unwrap();
+        let parsed: ValueParsedAttrs = model.try_into().unwrap();
         (
             parsed.custom_clean.unwrap_or(false),
             parsed.hashing.unwrap_or(HashLogic::Struct),
@@ -73,12 +73,6 @@ pub fn derive_leaf(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl #impl_generics #ident #ty_generics #where_clause {
-            pub fn into_leaf(self) -> ::std::rc::Rc<::depends::core::LeafNode<Self>> {
-                ::depends::core::LeafNode::new(self)
-            }
-        }
-
         impl #impl_generics ::depends::core::HashValue for #ident #ty_generics #where_clause {
             fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
                 #hash_value_clause
@@ -99,7 +93,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn test_leaf() {
+    fn test_input() {
         let input: TokenStream = parse_quote! {
             #[diesel(some_arg)]
             pub struct Foo {
@@ -107,28 +101,28 @@ mod tests {
             }
         };
         assert_snapshot!(
-            "leaf",
-            format_source(derive_leaf(input).to_string().as_str())
+            "value",
+            format_source(derive_value(input).to_string().as_str())
         );
     }
 
     #[test]
     #[ignore]
-    fn test_leaf_generics() {
+    fn test_input_generics() {
         let input = parse_quote! {
             struct Foo<T> {
                 bar: Vec<usize>
             }
         };
         assert_snapshot!(
-            "leaf_generics",
-            format_source(derive_leaf(input).to_string().as_str())
+            "value_generics",
+            format_source(derive_value(input).to_string().as_str())
         );
     }
 
     #[test]
     #[ignore]
-    fn test_leaf_hashed() {
+    fn test_input_hashed() {
         let input = parse_quote! {
             struct Foo<T> {
                 bar: Vec<usize>,
@@ -137,14 +131,14 @@ mod tests {
             }
         };
         assert_snapshot!(
-            "leaf_hashed_attr",
-            format_source(derive_leaf(input).to_string().as_str())
+            "value_hashed_attr",
+            format_source(derive_value(input).to_string().as_str())
         );
     }
 
     #[test]
     #[ignore]
-    fn test_leaf_unhashable() {
+    fn test_input_unhashable() {
         let input = parse_quote! {
             #[depends(unhashable)]
             struct Foo<T> {
@@ -153,14 +147,14 @@ mod tests {
             }
         };
         assert_snapshot!(
-            "leaf_unhashable",
-            format_source(derive_leaf(input).to_string().as_str())
+            "value_unhashable",
+            format_source(derive_value(input).to_string().as_str())
         );
     }
 
     #[test]
     #[ignore]
-    fn test_leaf_generics_custom_clean() {
+    fn test_input_generics_custom_clean() {
         let input = parse_quote! {
             #[depends(custom_clean)]
             struct Foo<T> {
@@ -168,14 +162,14 @@ mod tests {
             }
         };
         assert_snapshot!(
-            "leaf_generics_custom_clean",
-            format_source(derive_leaf(input).to_string().as_str())
+            "value_generics_custom_clean",
+            format_source(derive_value(input).to_string().as_str())
         );
     }
 
     #[test]
     #[should_panic]
-    fn test_leaf_multi_hash_attr_args() {
+    fn test_input_multi_hash_attr_args() {
         let input = parse_quote! {
             #[depends(unhashable)]
             struct Foo<T> {
@@ -184,12 +178,12 @@ mod tests {
                 number: usize,
             }
         };
-        derive_leaf(input);
+        derive_value(input);
     }
 
     #[test]
     #[should_panic]
-    fn test_leaf_multi_attrs() {
+    fn test_input_multi_attrs() {
         let input = parse_quote! {
             struct Foo<T> {
                 bar: Vec<usize>,
@@ -199,18 +193,18 @@ mod tests {
                 another: usize,
             }
         };
-        derive_leaf(input);
+        derive_value(input);
     }
 
     #[test]
     #[should_panic]
-    fn test_leaf_on_enum() {
+    fn test_input_on_enum() {
         let input = parse_quote! {
             enum Foo {
                 Thing(usize)
             }
         };
 
-        derive_leaf(input);
+        derive_value(input);
     }
 }

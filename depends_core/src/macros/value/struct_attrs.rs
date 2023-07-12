@@ -4,17 +4,19 @@ use syn::{
     Ident,
 };
 
-use crate::macros::common::{unexpected_attribute, HASH};
+use crate::macros::common::{unexpected_attribute, CUSTOM_CLEAN, UNHASHABLE};
 
-pub enum LeafFieldAttr {
-    Hash(Span),
+pub enum ValueStructAttr {
+    Unhashable(Span),
+    CustomClean(Span),
 }
 
-impl Parse for LeafFieldAttr {
+impl Parse for ValueStructAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident = input.parse::<Ident>()?;
         match ident.to_string().as_str() {
-            HASH => Ok(Self::Hash(ident.span())),
+            UNHASHABLE => Ok(Self::Unhashable(ident.span())),
+            CUSTOM_CLEAN => Ok(Self::CustomClean(ident.span())),
             unknown => Err(unexpected_attribute(unknown, ident.span())),
         }
     }

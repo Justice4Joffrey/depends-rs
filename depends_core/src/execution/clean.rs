@@ -10,7 +10,7 @@
 ///
 /// ## Example
 ///
-/// An example is given [here](super::UpdateLeaf).
+/// An example is given [here](super::UpdateInput).
 pub trait Clean {
     fn clean(&mut self);
 }

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::execution::Visitor;
+use crate::execution::{error::ResolveResult, Visitor};
 
 /// A [Depth-first search](https://en.wikipedia.org/wiki/Depth-first_search) resolver, used to
 /// recursively pass a [Visitor] through a graph, updating dependencies.
@@ -14,21 +14,21 @@ pub trait Resolve {
     ///
     /// Pass a [Visitor] through this node, resolve the latest version of all
     /// dependencies and return this node's output.
-    fn resolve(&self, visitor: &mut impl Visitor) -> Self::Output<'_>;
+    fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>>;
 
     /// Pass a [Visitor] through this node, resolve the latest version of all
     /// dependencies, reset the visitor and return this node's output.
-    fn resolve_root(&self, visitor: &mut impl Visitor) -> Self::Output<'_> {
-        let res = self.resolve(visitor);
+    fn resolve_root(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
+        let res = self.resolve(visitor)?;
         visitor.clear();
-        res
+        Ok(res)
     }
 }
 
 impl<T: Resolve> Resolve for Rc<T> {
     type Output<'a> = T::Output<'a> where Self: 'a;
 
-    fn resolve(&self, visitor: &mut impl Visitor) -> Self::Output<'_> {
+    fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
         T::resolve(self, visitor)
     }
 }

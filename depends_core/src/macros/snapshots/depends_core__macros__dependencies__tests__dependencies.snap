@@ -1,46 +1,75 @@
 ---
 source: depends_core/src/macros/dependencies.rs
-assertion_line: 125
-expression: "format_source(dependencies_attr(TokenStream::new(),\n                input).to_string().as_str())"
+assertion_line: 169
+expression: format_source(dependencies_attr(input).to_string().as_str())
 ---
-struct Components {
-    node1: ::depends::core::Dependency<::std::rc::Rc<Node1>>,
-    node2: ::depends::core::Dependency<::std::rc::Rc<Node2>>,
-    node3: ::depends::core::Dependency<::std::rc::Rc<Node3>>,
+struct ComponentsDep<A, B, C> {
+    node1: ::depends::core::Dependency<::std::rc::Rc<A>>,
+    node2: ::depends::core::Dependency<::std::rc::Rc<B>>,
+    node3: ::depends::core::Dependency<::std::rc::Rc<C>>,
 }
 struct ComponentsRef<'a> {
-    node1:
-        <::depends::core::Dependency<::std::rc::Rc<Node1>> as ::depends::core::Resolve>::Output<'a>,
-    node2:
-        <::depends::core::Dependency<::std::rc::Rc<Node2>> as ::depends::core::Resolve>::Output<'a>,
-    node3:
-        <::depends::core::Dependency<::std::rc::Rc<Node3>> as ::depends::core::Resolve>::Output<'a>,
+    node1: ::depends::core::DepRef<'a, ::std::cell::Ref<'a, ::depends::core::NodeState<Node1>>>,
+    node2: ::depends::core::DepRef<'a, ::std::cell::Ref<'a, ::depends::core::NodeState<Node2>>>,
+    node3: ::depends::core::DepRef<'a, ::std::cell::Ref<'a, ::depends::core::NodeState<Node3>>>,
 }
 impl Components {
-    pub fn new(
-        node1: ::std::rc::Rc<Node1>,
-        node2: ::std::rc::Rc<Node2>,
-        node3: ::std::rc::Rc<Node3>,
-    ) -> Self {
-        Self {
+    pub fn init<A, B, C>(
+        node1: ::std::rc::Rc<A>,
+        node2: ::std::rc::Rc<B>,
+        node3: ::std::rc::Rc<C>,
+    ) -> ComponentsDep<A, B, C>
+    where
+        for<'a> A: ::depends::core::Resolve<
+                Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node1>>,
+            > + 'a,
+        for<'a> B: ::depends::core::Resolve<
+                Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node2>>,
+            > + 'a,
+        for<'a> C: ::depends::core::Resolve<
+                Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node3>>,
+            > + 'a,
+    {
+        ComponentsDep {
             node1: ::depends::core::Dependency::new(node1),
             node2: ::depends::core::Dependency::new(node2),
             node3: ::depends::core::Dependency::new(node3),
         }
     }
-}
-impl ::depends::core::Resolve for Components {
-    type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
 
-    fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> Self::Output<'_> {
-        ComponentsRef {
-            node1: self.node1.resolve(visitor),
-            node2: self.node2.resolve(visitor),
-            node3: self.node3.resolve(visitor),
-        }
+    #[allow(dead_code)]
+    fn __unused(&self) {
+        let _ = self.node1;
+        let _ = self.node2;
+        let _ = self.node3;
     }
 }
-impl<'a> ::depends::core::IsDirty for ComponentsRef<'a> {
+impl<A, B, C> ::depends::core::Resolve for ComponentsDep<A, B, C>
+where
+    for<'a> A: ::depends::core::Resolve<
+            Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node1>>,
+        > + 'a,
+    for<'a> B: ::depends::core::Resolve<
+            Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node2>>,
+        > + 'a,
+    for<'a> C: ::depends::core::Resolve<
+            Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node3>>,
+        > + 'a,
+{
+    type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
+
+    fn resolve(
+        &self,
+        visitor: &mut impl ::depends::core::Visitor,
+    ) -> ::depends::core::error::ResolveResult<Self::Output<'_>> {
+        Ok(ComponentsRef {
+            node1: self.node1.resolve(visitor)?,
+            node2: self.node2.resolve(visitor)?,
+            node3: self.node3.resolve(visitor)?,
+        })
+    }
+}
+impl ::depends::core::IsDirty for ComponentsRef<'_> {
     fn is_dirty(&self) -> bool {
         self.node1.is_dirty() || self.node2.is_dirty() || self.node3.is_dirty()
     }
