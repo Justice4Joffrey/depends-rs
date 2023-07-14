@@ -10,8 +10,8 @@
 //! straightforward, but as the application scales, many hard to reason-with
 //! situations emerge from the combinatorial explosion of states.
 //!
-//! Dependency graphs are an excellent code architecture to tame complexity in
-//! such scenarios.
+//! Dependency graphs are an excellent code architectural pattern to tame
+//! complexity in such scenarios.
 //!
 //! ```
 //! # use std::cell::{RefMut};
