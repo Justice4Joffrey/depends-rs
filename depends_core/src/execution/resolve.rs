@@ -19,9 +19,9 @@ pub trait Resolve {
     /// Pass a [Visitor] through this node, resolve the latest version of all
     /// dependencies, reset the visitor and return this node's output.
     fn resolve_root(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
-        let res = self.resolve(visitor)?;
+        let res = self.resolve(visitor);
         visitor.clear();
-        Ok(res)
+        res
     }
 }
 

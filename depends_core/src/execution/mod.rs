@@ -9,6 +9,7 @@ mod is_dirty;
 mod named;
 mod node;
 mod resolve;
+mod update_derived;
 mod update_input;
 mod visitor;
 
@@ -22,5 +23,6 @@ pub use is_dirty::IsDirty;
 pub use named::Named;
 pub use node::{NodeHash, NodeRef, NodeState};
 pub use resolve::Resolve;
+pub use update_derived::UpdateDerived;
 pub use update_input::UpdateInput;
 pub use visitor::Visitor;

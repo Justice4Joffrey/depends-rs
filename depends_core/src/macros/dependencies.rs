@@ -17,7 +17,7 @@ fn block_generics(generics: &Generics) -> syn::Result<()> {
     }
 }
 
-pub fn dependencies_attr(input: TokenStream) -> TokenStream {
+pub fn derive_dependencies(input: TokenStream) -> TokenStream {
     let ItemStruct {
         vis,
         ident,
@@ -168,7 +168,7 @@ mod tests {
 
         assert_snapshot!(
             "dependencies",
-            format_source(dependencies_attr(input).to_string().as_str())
+            format_source(derive_dependencies(input).to_string().as_str())
         );
     }
 
@@ -179,7 +179,7 @@ mod tests {
             struct Components {
             }
         };
-        dependencies_attr(input);
+        derive_dependencies(input);
     }
 
     #[test]
@@ -190,7 +190,7 @@ mod tests {
                 node1: Node1,
             }
         };
-        dependencies_attr(input);
+        derive_dependencies(input);
     }
 
     #[test]
@@ -201,7 +201,7 @@ mod tests {
                 Node1,
             );
         };
-        dependencies_attr(input);
+        derive_dependencies(input);
     }
 
     #[test]
@@ -212,7 +212,7 @@ mod tests {
                 Node1 = 1;
             );
         };
-        dependencies_attr(input);
+        derive_dependencies(input);
     }
 
     #[test]
@@ -239,7 +239,7 @@ mod tests {
                 node17: Node17,
             }
         };
-        dependencies_attr(input);
+        derive_dependencies(input);
     }
 
     #[test]
@@ -252,6 +252,6 @@ mod tests {
                 node3: Node3,
             }
         };
-        dependencies_attr(input);
+        derive_dependencies(input);
     }
 }

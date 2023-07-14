@@ -1,13 +1,14 @@
 use std::{
-    cell::{Ref, RefCell},
+    cell::{Ref, RefCell, RefMut},
+    marker::PhantomData,
     rc::Rc,
 };
 
 pub use hrtb_workaround::IsDirtyInferenceWorkaround;
 
 use crate::execution::{
-    derived::TargetMut, error::ResolveError, next_node_id, Clean, HashValue, Identifiable, IsDirty,
-    Named, NodeState, Resolve, Visitor,
+    error::ResolveError, next_node_id, Clean, HashValue, Identifiable, IsDirty, Named, NodeState,
+    Resolve, UpdateDerived, Visitor,
 };
 
 /// A node which has a value derived from other nodes. This node will keep
@@ -17,22 +18,22 @@ pub struct DerivedNode<D, F, T> {
     /// The dependencies of this node. This can be a single node, or a
     /// struct containing multiple nodes.
     dependencies: D,
-    /// The function used to update the value of this node. This function
-    /// is only called if the dependencies appear to have changed.
-    update: F,
     /// The value of this node.
     data: RefCell<NodeState<T>>,
     /// The unique runtime Id of this node.
     id: usize,
+    /// A type representing the function used to update the value of this
+    /// node. This is only called if the dependencies appear to have changed.
+    phantom: PhantomData<F>,
 }
 
 impl<D, F, T> DerivedNode<D, F, T>
 where
     for<'a> D: Resolve + IsDirtyInferenceWorkaround<'a> + 'a,
-    for<'a> F: Fn(
-        <D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround,
-        TargetMut<'a, T>,
-    ) -> Result<(), ResolveError>,
+    for<'a> F: UpdateDerived<
+            Input<'a> = <D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround,
+            Target<'a> = RefMut<'a, NodeState<T>>,
+        > + 'a,
     T: HashValue + Clean + Named,
 {
     /// Construct this node.
@@ -41,10 +42,10 @@ where
     }
 
     /// Create this node with a specified Id. Useful for tests.
-    pub fn new_with_id(dependencies: D, update: F, data: T, id: usize) -> Rc<Self> {
+    pub fn new_with_id(dependencies: D, _: F, data: T, id: usize) -> Rc<Self> {
         Rc::new(Self {
             dependencies,
-            update,
+            phantom: PhantomData::<F>,
             data: RefCell::new(NodeState::new(data)),
             id,
         })
@@ -54,22 +55,22 @@ where
 impl<D, F, T> Resolve for DerivedNode<D, F, T>
 where
     for<'a> D: Resolve + IsDirtyInferenceWorkaround<'a> + 'a,
-    for<'a> F: Fn(
-        <D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround,
-        TargetMut<'a, T>,
-    ) -> Result<(), ResolveError>,
+    for<'a> F: UpdateDerived<
+            Input<'a> = <D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround,
+            Target<'a> = RefMut<'a, NodeState<T>>,
+        > + 'a,
     T: HashValue + Clean + Named,
 {
     type Output<'a> = Ref<'a, NodeState<T>> where Self: 'a ;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> Result<Self::Output<'_>, ResolveError> {
-        visitor.touch(self);
+        visitor.touch(self, Some(F::name()));
         if visitor.visit(self) {
             let input = self.dependencies.resolve_workaround(visitor)?;
             if input.is_dirty() {
                 let mut node_state = self.data.try_borrow_mut()?;
                 node_state.clean();
-                (self.update)(input, node_state)?;
+                F::update_derived(input, node_state)?;
                 // TODO: I'm running in to lifetime issues passing a
                 //  &mut node_state above, which would prevent the need to
                 //  reborrow here. For some reason, a mutable reference

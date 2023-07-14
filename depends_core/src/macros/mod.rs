@@ -3,8 +3,10 @@ mod dependencies;
 #[cfg(test)]
 pub mod helpers;
 mod model;
+mod operation;
 mod value;
 
-pub use dependencies::dependencies_attr;
+pub use dependencies::derive_dependencies;
 pub use model::*;
+pub use operation::derive_operation;
 pub use value::derive_value;
