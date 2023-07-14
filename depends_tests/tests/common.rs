@@ -69,7 +69,7 @@ pub fn square(
 
 pub fn multiply(
     TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-    mut target: RefMut<'_, NodeState<NumberValue>>,
+    mut target: TargetMut<'_, NumberValue>,
 ) -> ResolveResult<()> {
     target.value = left.value * right.value;
     Ok(())

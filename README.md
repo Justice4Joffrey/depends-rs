@@ -61,7 +61,7 @@ pub struct TwoNumbers {
 /// represents read-references to all of its fields.
 pub fn multiply(
     TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-    mut target: RefMut<'_, NodeState<NumberValue>>,
+    mut target: TargetMut<'_, NumberValue>,
 ) -> ResolveResult<()> {
     target.value = left.value * right.value;
     Ok(())
