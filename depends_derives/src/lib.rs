@@ -38,6 +38,14 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
 /// is merely an instruction to generate the above types.
 #[proc_macro_error]
 #[proc_macro_derive(Dependencies)]
-pub fn dependencies(input: TokenStream) -> TokenStream {
-    depends_core::macros::dependencies_attr(input.into()).into()
+pub fn derive_dependencies(input: TokenStream) -> TokenStream {
+    depends_core::macros::derive_dependencies(input.into()).into()
+}
+
+/// Mark this type as a an `Operation`. This implements `Named` for
+/// debugging, which is a requirement to implement `UpdateDerived`.
+#[proc_macro_error]
+#[proc_macro_derive(Operation)]
+pub fn derive_operation(input: TokenStream) -> TokenStream {
+    depends_core::macros::derive_operation(input.into()).into()
 }

@@ -23,7 +23,7 @@ pub trait Visitor {
     fn clear(&mut self);
 
     /// Touch the node. Useful for building graph visualisations.
-    fn touch<N>(&mut self, _node: &N)
+    fn touch<N>(&mut self, _node: &N, _operation: Option<&'static str>)
     where
         N: Identifiable,
     {

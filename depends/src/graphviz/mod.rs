@@ -10,6 +10,7 @@ struct Node {
     id: usize,
     name: &'static str,
     edges: BTreeSet<usize>,
+    operation: Option<&'static str>,
 }
 
 /// A [Visitor] which builds a `Graphviz` representation of a given graph.
@@ -19,11 +20,11 @@ struct Node {
 /// #
 /// # use depends::{
 /// #     core::{
-/// #         Dependency, HashValue, Resolve, UpdateInput,
+/// #         Dependency, HashValue, Resolve, UpdateDerived, UpdateInput,
 /// #         NodeHash, InputNode, DerivedNode, TargetMut,
-/// #         error::ResolveResult
+/// #         error::{EarlyExit, ResolveResult}
 /// #     },
-/// #     derives::{Dependencies, Value},
+/// #     derives::{Dependencies, Value, Operation},
 /// # };
 /// #
 /// # #[derive(Value, Default, Hash, Debug)]
@@ -38,12 +39,20 @@ struct Node {
 /// #         self.value = input;
 /// #     }
 /// # }
-/// # fn add(
-/// #     TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-/// #     mut target: TargetMut<'_, NumberValue>,
-/// # ) -> ResolveResult<()> {
-/// #     target.value = left.value + right.value;
-/// #     Ok(())
+/// # #[derive(Operation)]
+/// # struct Add;
+/// #
+/// # impl UpdateDerived for Add {
+/// #     type Input<'a> = TwoNumbersRef<'a> where Self: 'a;
+/// #     type Target<'a> = TargetMut<'a, NumberValue> where Self: 'a;
+/// #
+/// #     fn update_derived(
+/// #         TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
+/// #         mut target: TargetMut<'_, NumberValue>,
+/// #     ) -> Result<(), EarlyExit> {
+/// #         target.value = left.value + right.value;
+/// #         Ok(())
+/// #     }
 /// # }
 /// #
 /// # #[derive(Dependencies)]
@@ -58,7 +67,7 @@ struct Node {
 /// let left = InputNode::new(NumberValue::default());
 /// let right = InputNode::new(NumberValue::default());
 /// let two_numbers = TwoNumbers::init(left, right);
-/// let sum = DerivedNode::new(two_numbers, add, NumberValue::default());
+/// let sum = DerivedNode::new(two_numbers, Add, NumberValue::default());
 ///
 /// let mut visitor = GraphvizVisitor::new();
 ///
@@ -74,8 +83,8 @@ struct Node {
 ///   0[label="NumberValue"];
 ///   1[label="NumberValue"];
 ///   2[label="NumberValue"];
-///   0 -> 2;
-///   1 -> 2;
+///   0 -> 2[label="Add"];
+///   1 -> 2[label="Add"];
 /// }
 /// "#
 ///     .trim()
@@ -103,9 +112,17 @@ impl GraphvizVisitor {
             lines.push(String::from("digraph G {"));
             self.nodes.values().for_each(|n| {
                 lines.push(format!("  {}[label=\"{}\"];", n.id, n.name));
-                n.edges.iter().for_each(|c| {
-                    lines.push(format!("  {} -> {};", c, n.id));
-                });
+                // TODO: it would be nice to make this type-system enforced
+                //  at the moment, it's not guaranteed by the type system
+                //  that nodes.len() == 0 iff operation.is_none()
+                //  this would likely be done by splitting `touch` in to
+                //  `touch_input` and `touch_derived`
+                if let Some(op) = n.operation {
+                    let edge_label = format!("[label=\"{}\"]", op);
+                    n.edges.iter().for_each(|c| {
+                        lines.push(format!("  {} -> {}{};", c, n.id, edge_label));
+                    });
+                }
             });
             lines.push(String::from("}"));
             Some(lines.join("\n"))
@@ -128,7 +145,7 @@ impl Visitor for GraphvizVisitor {
         self.nodes.clear();
     }
 
-    fn touch<N>(&mut self, node: &N)
+    fn touch<N>(&mut self, node: &N, operation: Option<&'static str>)
     where
         N: Identifiable,
     {
@@ -138,6 +155,7 @@ impl Visitor for GraphvizVisitor {
                 id: node.id(),
                 name: N::name(),
                 edges: BTreeSet::default(),
+                operation,
             }
         });
     }

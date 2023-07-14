@@ -1,4 +1,8 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{
+    cell::{BorrowError, Ref, RefCell},
+    ops::DerefMut,
+    rc::Rc,
+};
 
 use crate::execution::{
     error::ResolveResult, identifiable::next_node_id, Clean, Identifiable, InputState, Named,
@@ -57,6 +61,10 @@ where
         node_state.deref_mut().update_mut(input);
         Ok(())
     }
+
+    pub fn data(&self) -> Result<Ref<'_, NodeState<T>>, BorrowError> {
+        self.data.try_borrow()
+    }
 }
 
 impl<T> Resolve for InputNode<T>
@@ -66,7 +74,7 @@ where
     type Output<'a> = NodeRef<'a, T> where Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
-        visitor.touch(self);
+        visitor.touch(self, None);
         if visitor.visit(self) {
             let mut node_state = self.data.try_borrow_mut()?;
             let mut resolve_state = self.resolve_state.try_borrow_mut()?;

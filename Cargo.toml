@@ -4,5 +4,7 @@ members = [
     "depends_derives",
     "depends_core",
     "depends_tests",
+    
+    "examples/early_exit",
     "examples/maths",
 ]

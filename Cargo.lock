@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "depends"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "depends_core",
  "depends_derives",
@@ -68,7 +68,7 @@ dependencies = [
 
 [[package]]
 name = "depends_core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "ahash",
  "colored-diff",
@@ -83,7 +83,7 @@ dependencies = [
 
 [[package]]
 name = "depends_derives"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "depends_core",
  "proc-macro-error",
@@ -104,6 +104,13 @@ name = "dissimilar"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "210ec60ae7d710bed8683e333e9d2855a8a56a3e9892b38bad3bb0d4d29b0d5e"
+
+[[package]]
+name = "early_exit"
+version = "0.1.0"
+dependencies = [
+ "depends",
+]
 
 [[package]]
 name = "either"
