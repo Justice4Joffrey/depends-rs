@@ -1,12 +1,9 @@
 #![allow(dead_code)]
 
-use std::{
-    cell::RefMut,
-    hash::{Hash, Hasher},
-};
+use std::hash::{Hash, Hasher};
 
 use depends::{
-    core::{error::ResolveResult, NodeState, SingleRef, TargetMut, UpdateInput},
+    core::{error::ResolveResult, SingleRef, TargetMut, UpdateInput},
     derives::{Dependencies, Value},
 };
 
