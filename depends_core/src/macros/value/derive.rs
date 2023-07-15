@@ -75,6 +75,7 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
 
         impl #impl_generics ::depends::core::HashValue for #ident #ty_generics #where_clause {
             fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+                use ::std::hash::Hash;
                 #hash_value_clause
             }
         }

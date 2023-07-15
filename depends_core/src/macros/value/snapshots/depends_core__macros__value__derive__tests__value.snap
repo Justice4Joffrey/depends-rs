@@ -1,6 +1,6 @@
 ---
 source: depends_core/src/macros/value/derive.rs
-assertion_line: 101
+assertion_line: 104
 expression: format_source(derive_value(input).to_string().as_str())
 ---
 impl ::depends::core::Named for Foo {
@@ -10,6 +10,7 @@ impl ::depends::core::Named for Foo {
 }
 impl ::depends::core::HashValue for Foo {
     fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::core::NodeHash {
+        use ::std::hash::Hash;
         ::depends::core::NodeHash::Hashed({
             self.hash(hasher);
             hasher.finish()
