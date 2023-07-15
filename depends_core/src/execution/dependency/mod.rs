@@ -1,7 +1,10 @@
 mod dep_ref;
 mod dep_state;
 
-use std::cell::{Ref, RefCell};
+use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+};
 
 pub use dep_ref::DepRef;
 pub use dep_state::DependencyState;
@@ -11,6 +14,8 @@ use crate::execution::{error::ResolveResult, NodeState};
 
 /// Short-hand for a reference to a single dependency.
 pub type SingleRef<'a, T> = DepRef<'a, Ref<'a, NodeState<T>>>;
+/// Short-hand for a single dependency type.
+pub type SingleDep<T> = Dependency<Rc<T>>;
 
 /// Wraps a dependency and tracks the hashed value each time it's resolved. This
 /// allows the resolver to know if a dependency is 'dirty' from the perspective

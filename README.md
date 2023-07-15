@@ -8,6 +8,8 @@
 A library for ergonomic, performant, incremental computation between
 arbitrary types.
 
+See [benchmarks](https://github.com/Justice4Joffrey/depends-rs/tree/master/benches).
+
 ## Why would I want that
 
 Most applications rely on some core logic which must respond to external

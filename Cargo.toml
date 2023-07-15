@@ -3,6 +3,8 @@ members = [
     "depends",
     "depends_derives",
     "depends_core",
+    # Internal
+    "benches",
     "depends_tests",
     "examples"
 ]
