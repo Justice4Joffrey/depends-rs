@@ -159,9 +159,9 @@ fn main() {
     );
 
     let mut visitor = HashSet::<usize>::new();
-    for i in 0..11 {
+    for i in 0..=10 {
         println!("------------");
-        println!("Iteration {} {}", i, visitor.len());
+        println!("Iteration {}", i);
         // Resolve the graph.
         let decision = match decision.resolve_root(&mut visitor) {
             Ok(order) => order.value.unwrap(),

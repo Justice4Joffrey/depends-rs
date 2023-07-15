@@ -16,6 +16,9 @@ members = [
 depends = {path = "./depends", version = "0.7.0", features = ["graphviz"]}
 
 [[example]]
+name = "custom_clean"
+
+[[example]]
 name = "early_exit"
 
 [[example]]
