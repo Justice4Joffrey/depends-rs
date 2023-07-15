@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{
     collections::HashSet,
     hash::{Hash, Hasher},
@@ -138,7 +136,7 @@ impl UpdateDerived for Decide {
 }
 
 fn main() {
-    /// Our only input node to this graph is the number of open orders.
+    // Our only input node to this graph is the number of open orders.
     let open_orders = InputNode::new(OpenOrders::default());
 
     let risk_node = DerivedNode::new(
