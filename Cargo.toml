@@ -1,10 +1,22 @@
+[package]
+name = "depends-rs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
 [workspace]
 members = [
     "depends",
     "depends_derives",
     "depends_core",
     "depends_tests",
-    
-    "examples/early_exit",
-    "examples/maths",
 ]
+
+[dev-dependencies]
+depends = {path = "./depends", version = "0.7.0", features = ["graphviz"]}
+
+[[example]]
+name = "early_exit"
+
+[[example]]
+name = "maths"

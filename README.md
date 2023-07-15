@@ -18,7 +18,7 @@ situations emerge from the combinatorial explosion of states.
 Dependency graphs are an excellent code architecture to tame complexity in
 such scenarios.
 
-``` rust
+```rust
 /// A unit of data within a graph.
 #[derive(Value, Default, Hash)]
 pub struct NumberValue {
@@ -117,13 +117,12 @@ and the output is a combination of many transformations on that input (and
 derivations of it), `depends` can help you produce scalable, performant,
 testable code out of the box.
 
-
 ## Graphviz
 
 Any graph built using `depends` can be converted to a [Graphviz](https://graphviz.org/) representation
 by passing a `GraphvizVisitor` (this requires the feature `graphviz`).
 
-``` rust 
+```rust
 let mut visitor = GraphvizVisitor::new();
 graph.resolve(&mut visitor).unwrap();
 assert_eq!(
@@ -155,3 +154,10 @@ The guarantees we would _like_ to offer, before considering this crate productio
 
 Feel free to experiment with the crate, apply it to your problems and pass on any feedback you have.
 
+## Examples
+
+You can run examples in the `examples` directory from the root of the workspace with:
+
+```
+cargo run --example <example_name>
+```

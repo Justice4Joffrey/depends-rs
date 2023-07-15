@@ -67,6 +67,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "depends-rs"
+version = "0.1.0"
+dependencies = [
+ "depends",
+]
+
+[[package]]
 name = "depends_core"
 version = "0.7.0"
 dependencies = [
@@ -104,13 +111,6 @@ name = "dissimilar"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "210ec60ae7d710bed8683e333e9d2855a8a56a3e9892b38bad3bb0d4d29b0d5e"
-
-[[package]]
-name = "early_exit"
-version = "0.1.0"
-dependencies = [
- "depends",
-]
 
 [[package]]
 name = "either"
@@ -184,13 +184,6 @@ name = "linked-hash-map"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
-
-[[package]]
-name = "maths"
-version = "0.1.0"
-dependencies = [
- "depends",
-]
 
 [[package]]
 name = "once_cell"
