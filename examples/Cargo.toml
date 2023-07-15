@@ -1,0 +1,17 @@
+[package]
+name = "examples"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dev-dependencies]
+depends = {path = "../depends", version = "0.7.0", features = ["graphviz"]}
+
+[[example]]
+name = "custom_clean"
+
+[[example]]
+name = "early_exit"
+
+[[example]]
+name = "maths"
