@@ -1,15 +1,14 @@
 #![allow(dead_code)]
 
 use std::{
-    collections::{HashSet},
+    collections::HashSet,
     hash::{Hash, Hasher},
     rc::Rc,
 };
 
 use depends::{
     core::{
-        error::{EarlyExit},
-        Clean, DerivedNode, InputNode, Resolve, TargetMut, UpdateDerived,
+        error::EarlyExit, Clean, DerivedNode, InputNode, Resolve, TargetMut, UpdateDerived,
         UpdateInput,
     },
     derives::{Dependencies, Operation, Value},
