@@ -105,9 +105,7 @@ impl UpdateDerived for CalculateNextNumber {
     }
 }
 
-/// Ordering is important here! Nodes will be resolved in the order they are
-/// defined, so we must define the `RiskLimit` node before we define the
-/// `ExpensiveCalculation` node.
+/// The factors which our final decision depends on.
 #[derive(Dependencies)]
 pub struct Factors {
     open_orders: OpenOrders,
@@ -140,8 +138,7 @@ impl UpdateDerived for Decide {
 }
 
 fn main() {
-    // Create some input nodes. These are nodes we can update from outside of
-    // the graph.
+    /// Our only input node to this graph is the number of open orders.
     let open_orders = InputNode::new(OpenOrders::default());
 
     let risk_node = DerivedNode::new(
