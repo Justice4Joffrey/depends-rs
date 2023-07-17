@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-depends = { path = "../depends", version = "0.7.0", features = ["graphviz"] }
+depends = { path = "../depends", features = ["graphviz"] }
 
 chrono = "0.4.19"
 csv = "1.2.2"
