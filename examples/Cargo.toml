@@ -4,8 +4,12 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
-[dev-dependencies]
-depends = {path = "../depends", version = "0.7.0", features = ["graphviz"]}
+[dependencies]
+depends = { path = "../depends", version = "0.7.0", features = ["graphviz"] }
+
+chrono = "0.4.19"
+csv = "1.2.2"
+serde = { version = "1.0.171", features = ["derive"] }
 
 [[example]]
 name = "custom_clean"
