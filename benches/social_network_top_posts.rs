@@ -1,81 +1,74 @@
-use std::{collections::HashSet, path::Path, rc::Rc};
+use std::{cell::Ref, collections::HashSet, path::Path};
 
 use benches::{read_csv_file, read_csv_update, Phase, SocialNetworkConfig};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use depends::core::{Dependency, DerivedNode, InputNode, Resolve, SingleDep};
-use envconfig::Envconfig;
-use examples::{
-    models::{Comment, ExpectedResult, Like, Post, Update},
-    Comments, CommentsPostsLikes, CommentsPostsLikesDep, CommentsToPosts, Likes, PostScoresQuery,
-    Posts, TrackCommentPostIds, UpdatePostScoresQuery,
+use depends::{
+    core::{error::ResolveResult, GraphCreate, NodeState, Resolve, Visitor},
+    derives::Graph,
 };
+use envconfig::Envconfig;
+use examples::{models::*, *};
 
-/// A graph of the social network query 1.
-///
-/// ``` text
-/// digraph G {
-///   0[label="Comments"];
-///   1[label="Posts"];
-///   2[label="Likes"];
-///   3[label="CommentsToPosts"];
-///   0 -> 3[label="TrackCommentPostIds"];
-///   4[label="PostScoresQuery"];
-///   0 -> 4[label="UpdatePostScoresQuery"];
-///   1 -> 4[label="UpdatePostScoresQuery"];
-///   2 -> 4[label="UpdatePostScoresQuery"];
-///   3 -> 4[label="UpdatePostScoresQuery"];
-/// }
-/// ```
-#[allow(clippy::type_complexity)]
-struct Graph {
-    comments: Rc<InputNode<Comments>>,
-    posts: Rc<InputNode<Posts>>,
-    likes: Rc<InputNode<Likes>>,
-    /// We could use type erasure and generics to reduce the complexity of
-    /// this type, as the only important thing is it `Resolves` to a
-    /// `PostScoresQuery`, but it's useful for demonstration what this type
-    /// actually looks like.
-    post_scores: Rc<
-        DerivedNode<
-            CommentsPostsLikesDep<
-                InputNode<Comments>,
-                DerivedNode<SingleDep<InputNode<Comments>>, TrackCommentPostIds, CommentsToPosts>,
-                InputNode<Posts>,
-                InputNode<Likes>,
-            >,
-            UpdatePostScoresQuery,
-            PostScoresQuery,
-        >,
-    >,
-}
+#[derive(Graph)]
+#[depends(
+    digraph Dag {
+        comments [label="Comments"];
+        posts [label="Posts"];
+        likes [label="Likes"];
+        comment_to_posts [label="CommentsToPosts"];
+        comments -> comment_to_posts [label="TrackCommentPostIds"];
+        query [label="PostScoresQuery"];
+        comments -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
+        comment_to_posts -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
+        posts -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
+        likes -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
+    }
+)]
+struct Foo {}
 
-impl Graph {
+struct GraphOuter<G>(<Foo as GraphCreate>::Graph<G>);
+
+impl<R> GraphOuter<R>
+where
+    for<'a> R: Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>> + 'a,
+{
     pub fn init_comments(&self, comments: Vec<Comment>) {
         for comment in comments {
-            self.comments.update(comment).unwrap();
+            self.0.update_comments(comment).unwrap();
         }
     }
 
     pub fn init_posts(&self, posts: Vec<Post>) {
         for post in posts {
-            self.posts.update(post).unwrap();
+            self.0.update_posts(post).unwrap();
         }
     }
 
     pub fn init_likes(&self, likes: Vec<Like>) {
         for like in likes {
-            self.likes.update(like).unwrap();
+            self.0.update_likes(like).unwrap();
         }
     }
 
     pub fn apply_updates(&self, updates: Vec<Update>) {
         for update in updates {
             match update {
-                Update::Posts(post) => self.posts.update(post).unwrap(),
-                Update::Comments(comment) => self.comments.update(comment).unwrap(),
+                Update::Posts(post) => self.0.update_posts(post).unwrap(),
+                Update::Comments(comment) => self.0.update_comments(comment).unwrap(),
                 _ => {}
             }
         }
+    }
+}
+
+impl<R> Resolve for GraphOuter<R>
+where
+    for<'a> R: Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>> + 'a,
+{
+    type Output<'a> = <R as Resolve>::Output<'a> where Self: 'a;
+
+    fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
+        self.0.resolve(visitor)
     }
 }
 
@@ -109,26 +102,34 @@ impl InputBatch {
         })
     }
 
-    pub fn initialise_graph(&mut self, graph: &Graph) {
+    pub fn initialise_graph<R>(&mut self, graph: &GraphOuter<R>)
+    where
+        for<'a> R: Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>> + 'a,
+    {
         graph.init_comments(self.comments.take().unwrap());
         graph.init_posts(self.posts.take().unwrap());
         graph.init_likes(self.likes.take().unwrap());
     }
 
-    pub fn play_update(&mut self, graph: &Graph) {
+    pub fn play_update<R>(&mut self, graph: &GraphOuter<R>)
+    where
+        for<'a> R: Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>> + 'a,
+    {
         let update = self.updates.pop().unwrap();
         graph.apply_updates(update);
     }
 
-    pub fn initialise_to_phase(
+    pub fn initialise_to_phase<R>(
         &mut self,
-        graph: &Graph,
+        graph: &GraphOuter<R>,
         visitor: &mut HashSet<usize>,
         phase: Phase,
-    ) {
+    ) where
+        for<'a> R: Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>> + 'a,
+    {
         self.initialise_graph(graph);
         if phase == Phase::Updates {
-            graph.post_scores.resolve_root(visitor).unwrap();
+            graph.resolve_root(visitor).unwrap();
         }
     }
 }
@@ -140,32 +141,21 @@ fn bench_name(expected_result: &ExpectedResult, phase: Phase) -> String {
     )
 }
 
-fn load_data(mut input_batch: InputBatch, phase: Phase) -> (HashSet<usize>, Graph, InputBatch) {
-    let comments_node = InputNode::new(Comments::default());
-    let posts_node = InputNode::new(Posts::default());
-    let likes_node = InputNode::new(Likes::default());
-
-    let comments_to_posts = DerivedNode::new(
-        Dependency::new(Rc::clone(&comments_node)),
-        TrackCommentPostIds,
+fn load_data(
+    mut input_batch: InputBatch,
+    phase: Phase,
+) -> (
+    HashSet<usize>,
+    GraphOuter<impl for<'a> Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>>>,
+    InputBatch,
+) {
+    let graph = GraphOuter(Foo::create_dag(
+        Comments::default(),
+        Likes::default(),
+        Posts::default(),
         CommentsToPosts::default(),
-    );
-    let post_scores = DerivedNode::new(
-        CommentsPostsLikes::init(
-            Rc::clone(&comments_node),
-            comments_to_posts,
-            Rc::clone(&posts_node),
-            Rc::clone(&likes_node),
-        ),
-        UpdatePostScoresQuery,
         PostScoresQuery::default(),
-    );
-    let graph = Graph {
-        comments: comments_node,
-        posts: posts_node,
-        likes: likes_node,
-        post_scores,
-    };
+    ));
     let mut init_visitor = HashSet::new();
     input_batch.initialise_to_phase(&graph, &mut init_visitor, phase);
     let visitor = HashSet::<usize>::with_capacity(4);
@@ -189,7 +179,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                     |(mut visitor, graph, input_batch)| {
                         let expected = &expected_result[&0];
                         {
-                            let output = graph.post_scores.resolve(&mut visitor).unwrap();
+                            let output = graph.resolve(&mut visitor).unwrap();
                             assert_eq!(output.top_posts(), expected.metric_value);
                         }
                         // important to return the data so it isn't dropped
@@ -210,7 +200,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                         for iteration in 1..=20 {
                             let expected = &expected_result[&iteration];
                             input_batch.play_update(&graph);
-                            let output = graph.post_scores.resolve_root(&mut visitor).unwrap();
+                            let output = graph.resolve_root(&mut visitor).unwrap();
                             assert_eq!(output.top_posts(), expected.metric_value);
                         }
                         // important to return the data so it isn't dropped

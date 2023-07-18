@@ -1,12 +1,17 @@
 ---
 source: depends_core/src/macros/dependencies.rs
-assertion_line: 169
-expression: format_source(dependencies_attr(input).to_string().as_str())
+assertion_line: 198
+expression: format_source(derive_dependencies(input).to_string().as_str())
 ---
 struct ComponentsDep<A, B, C> {
     node1: ::depends::core::Dependency<::std::rc::Rc<A>>,
     node2: ::depends::core::Dependency<::std::rc::Rc<B>>,
     node3: ::depends::core::Dependency<::std::rc::Rc<C>>,
+}
+impl<A, B, C> ::depends::core::Named for ComponentsDep<A, B, C> {
+    fn name() -> &'static str {
+        "ComponentsDep"
+    }
 }
 struct ComponentsRef<'a> {
     node1: ::depends::core::DepRef<'a, ::std::cell::Ref<'a, ::depends::core::NodeState<Node1>>>,
@@ -44,6 +49,27 @@ impl Components {
         let _ = self.node3;
     }
 }
+impl<A, B, C> From<(::std::rc::Rc<A>, ::std::rc::Rc<B>, ::std::rc::Rc<C>)>
+    for ComponentsDep<A, B, C>
+where
+    for<'a> A: ::depends::core::Resolve<
+            Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node1>>,
+        > + 'a,
+    for<'a> B: ::depends::core::Resolve<
+            Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node2>>,
+        > + 'a,
+    for<'a> C: ::depends::core::Resolve<
+            Output<'a> = ::std::cell::Ref<'a, ::depends::core::NodeState<Node3>>,
+        > + 'a,
+{
+    fn from((node1, node2, node3): (::std::rc::Rc<A>, ::std::rc::Rc<B>, ::std::rc::Rc<C>)) -> Self {
+        Self {
+            node1: ::depends::core::Dependency::new(node1),
+            node2: ::depends::core::Dependency::new(node2),
+            node3: ::depends::core::Dependency::new(node3),
+        }
+    }
+}
 impl<A, B, C> ::depends::core::Resolve for ComponentsDep<A, B, C>
 where
     for<'a> A: ::depends::core::Resolve<
@@ -62,6 +88,8 @@ where
         &self,
         visitor: &mut impl ::depends::core::Visitor,
     ) -> ::depends::core::error::ResolveResult<Self::Output<'_>> {
+        use ::depends::core::Named;
+        visitor.touch_dependency_group(Self::name());
         Ok(ComponentsRef {
             node1: self.node1.resolve(visitor)?,
             node2: self.node2.resolve(visitor)?,

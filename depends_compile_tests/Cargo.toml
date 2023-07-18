@@ -1,0 +1,11 @@
+[package]
+name = "depends_compile_tests"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+depends = { path = "../depends", features = ["hashbrown", "graphviz"] }
+examples = { path = "../examples" }
+trybuild = "1.0.81"
+
+[workspace]

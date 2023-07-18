@@ -2,10 +2,10 @@ permissions:
   contents: read
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
   schedule:
-    - cron:  '7 7 * * *'
+    - cron: '7 7 * * *'
 name: rolling
 jobs:
   # https://twitter.com/mycoliza/status/1571295690063753218
@@ -16,13 +16,18 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Install nightly
+      - name: Install nightly for fmt tests
         uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
       - name: cargo test --locked
         run: cargo test --workspace --locked --all-features --all-targets --exclude benches
+      - name: compile test --locked
+        working-directory: depends_compile_tests
+        run: cargo test --locked --all-features --all-targets
   # https://twitter.com/alcuadrado/status/1571291687837732873
   update:
     runs-on: ubuntu-latest
@@ -35,6 +40,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Install nightly for fmt tests
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
       - name: Install beta
         if: hashFiles('Cargo.lock') != ''
         uses: dtolnay/rust-toolchain@beta
@@ -43,6 +52,12 @@ jobs:
         run: cargo update
       - name: cargo test
         if: hashFiles('Cargo.lock') != ''
-        run: cargo test --workspace --locked --all-features --all-targets --exclude benches
+        run: cargo test --workspace --all-features --all-targets --exclude benches
+        env:
+          RUSTFLAGS: -D deprecated
+      - name: compile test
+        if: hashFiles('Cargo.lock') != ''
+        working-directory: depends_compile_tests
+        run: cargo test --all-features --all-targets
         env:
           RUSTFLAGS: -D deprecated

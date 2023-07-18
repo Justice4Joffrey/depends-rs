@@ -11,3 +11,13 @@ impl<T: Named> Named for Rc<T> {
         T::name()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_named_rc() {
+        assert_eq!(Rc::<String>::name(), "String");
+    }
+}

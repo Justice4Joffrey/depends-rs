@@ -10,7 +10,7 @@ fn block_generics(generics: &Generics) -> syn::Result<()> {
     if !generics.params.is_empty() {
         Err(syn::Error::new(
             generics.span(),
-            "dependencies don't support generics",
+            "Dependencies can't be defined with generics.",
         ))
     } else {
         Ok(())
@@ -18,32 +18,46 @@ fn block_generics(generics: &Generics) -> syn::Result<()> {
 }
 
 pub fn derive_dependencies(input: TokenStream) -> TokenStream {
+    derive_dependencies_inner(input).unwrap_or_else(syn::Error::into_compile_error)
+}
+
+/// Limit on the number of edges to a node. This is arbitrary.
+const MAX_FIELDS: usize = 26;
+
+fn derive_dependencies_inner(input: TokenStream) -> syn::Result<TokenStream> {
     let ItemStruct {
         vis,
         ident,
         generics,
         fields,
         ..
-    } = parse2::<ItemStruct>(input).unwrap();
+    } = parse2::<ItemStruct>(input)?;
 
     // Generics are created for derived types, so it's not clear how we
     // _could_ support them.
-    block_generics(&generics).unwrap();
+    block_generics(&generics)?;
     let name = ident.to_string();
     let ref_ident = Ident::new(format!("{}Ref", name).as_str(), Span::call_site());
-    let dep_ident = Ident::new(format!("{}Dep", name).as_str(), Span::call_site());
+    let dep_name = format!("{}Dep", name);
+    let dep_ident = Ident::new(&dep_name, Span::call_site());
     let fields = if let Fields::Named(f) = fields {
         f.named
     } else {
-        panic!("must be a struct with named fields");
+        return Err(syn::Error::new(
+            Span::call_site(),
+            "Must be a struct with named fields.",
+        ));
     };
     // kind of arbitrary, but we don't have infinite alphabet and this is
     // already a large number of dependencies.
     if fields.len() < 2 {
-        panic!("dependencies must have at least 2 fields");
+        return Err(syn::Error::new(Span::call_site(), "Dependencies must have at least 2 fields. Use `depends::core::Dependency` for a single dependency."));
     }
-    if fields.len() > 16 {
-        panic!("dependencies only supports structs with up to 16 fields");
+    if fields.len() > MAX_FIELDS {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            format!("Dependencies only supports structs with up to {MAX_FIELDS} fields."),
+        ));
     }
 
     let lifetime = LifetimeParam::new(Lifetime::new("'a", Span::call_site()));
@@ -57,52 +71,63 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
     let mut field_resolves = TokenStream::new();
     let mut dirty_field_args = Vec::<TokenStream>::new();
     let mut generics = Generics::default();
+    let mut rc_types = Vec::<TokenStream>::new();
+    let mut names = Vec::<Ident>::new();
     let mut where_clauses = Vec::<TokenStream>::new();
 
-    fields
-        .into_iter()
-        .zip('A'..='Z')
-        .for_each(|(Field { vis, ident, ty, .. }, gen_ident)| {
-            let ident = ident.expect("struct fields must be named.");
-            let gen_ident = Ident::new(gen_ident.to_string().as_str(), Span::call_site());
-            let new_type = quote! { ::depends::core::DepRef<#lifetime, ::std::cell::Ref<#lifetime, ::depends::core::NodeState<#ty>>> };
-            generics
-                .params
-                .push(GenericParam::Type(TypeParam::from(gen_ident.clone())));
-            new_fields.extend(quote! {
-                #vis #ident: ::depends::core::Dependency<::std::rc::Rc<#gen_ident>>,
-            });
-            unused_fields.push(quote! {
-                let _ = self.#ident;
-            });
-            ref_fields.extend(quote! {
-                #vis #ident: #new_type,
-            });
-            field_args.extend(quote! {
-                #ident: ::std::rc::Rc<#gen_ident>,
-            });
-            field_new_args.extend(quote! {
-                #ident: ::depends::core::Dependency::new(#ident),
-            });
-            field_resolves.extend(quote! {
-                #ident: self.#ident.resolve(visitor)?,
-            });
-            dirty_field_args.push(quote! {
-                self.#ident.is_dirty()
-            });
-            where_clauses.push(quote! {
+    for (Field { vis, ident, ty, .. }, gen_ident) in fields.into_iter().zip('A'..='Z') {
+        let ident_span = ident.span();
+        let ident =
+            ident.ok_or_else(|| syn::Error::new(ident_span, "Struct fields must be named."))?;
+        let gen_ident = Ident::new(gen_ident.to_string().as_str(), Span::call_site());
+        let new_type = quote! { ::depends::core::DepRef<#lifetime, ::std::cell::Ref<#lifetime, ::depends::core::NodeState<#ty>>> };
+        rc_types.push(quote! {
+           ::std::rc::Rc<#gen_ident>
+        });
+        new_fields.extend(quote! {
+            #vis #ident: ::depends::core::Dependency<::std::rc::Rc<#gen_ident>>,
+        });
+        unused_fields.push(quote! {
+            let _ = self.#ident;
+        });
+        ref_fields.extend(quote! {
+            #vis #ident: #new_type,
+        });
+        field_args.extend(quote! {
+            #ident: ::std::rc::Rc<#gen_ident>,
+        });
+        field_new_args.extend(quote! {
+            #ident: ::depends::core::Dependency::new(#ident),
+        });
+        field_resolves.extend(quote! {
+            #ident: self.#ident.resolve(visitor)?,
+        });
+        dirty_field_args.push(quote! {
+            self.#ident.is_dirty()
+        });
+        where_clauses.push(quote! {
                 for<#lifetime> #gen_ident: ::depends::core::Resolve<Output<#lifetime> = ::std::cell::Ref<#lifetime, ::depends::core::NodeState<#ty>>> + #lifetime
             });
-        });
+        generics
+            .params
+            .push(GenericParam::Type(TypeParam::from(gen_ident)));
+        names.push(ident);
+    }
 
     let mut ref_generics = Generics::default();
     ref_generics
         .params
         .push(GenericParam::Lifetime(lifetime.clone()));
 
-    quote! {
+    Ok(quote! {
         #vis struct #dep_ident #generics {
             #new_fields
+        }
+
+        impl #generics ::depends::core::Named for #dep_ident #generics {
+            fn name() -> &'static str {
+                #dep_name
+            }
         }
 
         #vis struct #ref_ident #ref_generics {
@@ -126,6 +151,17 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl #generics From<( #(#rc_types),* )> for #dep_ident #generics
+        where
+            #(#where_clauses),*
+        {
+            fn from(( #(#names),* ): ( #(#rc_types),* )) -> Self {
+                Self {
+                    #field_new_args
+                }
+            }
+        }
+
         impl #generics ::depends::core::Resolve for #dep_ident #generics
             where
                 #(#where_clauses),*
@@ -133,6 +169,8 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
             type Output<#lifetime> = #ref_ident #ref_generics where Self: #lifetime;
 
             fn resolve(&self, visitor: &mut impl ::depends::core::Visitor) -> ::depends::core::error::ResolveResult<Self::Output<'_>> {
+                use ::depends::core::Named;
+                visitor.touch_dependency_group(Self::name());
                 Ok(#ref_ident {
                     #field_resolves
                 })
@@ -144,10 +182,10 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
                 #(#dirty_field_args)||*
             }
         }
-    }
+    })
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri), not(target_os = "windows")))]
 mod tests {
     use insta::assert_snapshot;
     use syn::parse_quote;
@@ -156,7 +194,6 @@ mod tests {
     use crate::macros::helpers::format_source;
 
     #[test]
-    #[ignore]
     fn test_dependencies() {
         let input = parse_quote! {
             struct Components {
@@ -170,88 +207,5 @@ mod tests {
             "dependencies",
             format_source(derive_dependencies(input).to_string().as_str())
         );
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_dependencies_no_fields() {
-        let input = parse_quote! {
-            struct Components {
-            }
-        };
-        derive_dependencies(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_dependencies_one_field() {
-        let input = parse_quote! {
-            struct Components {
-                node1: Node1,
-            }
-        };
-        derive_dependencies(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_dependencies_tuple() {
-        let input = parse_quote! {
-            struct Components (
-                Node1,
-            );
-        };
-        derive_dependencies(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_dependencies_enum() {
-        let input = parse_quote! {
-            enum Components (
-                Node1 = 1;
-            );
-        };
-        derive_dependencies(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_dependencies_too_many_fields() {
-        let input = parse_quote! {
-            struct Components {
-                node1: Node1,
-                node2: Node2,
-                node3: Node3,
-                node4: Node4,
-                node5: Node5,
-                node6: Node6,
-                node7: Node7,
-                node8: Node8,
-                node9: Node9,
-                node10: Node10,
-                node11: Node11,
-                node12: Node12,
-                node13: Node13,
-                node14: Node14,
-                node15: Node15,
-                node16: Node16,
-                node17: Node17,
-            }
-        };
-        derive_dependencies(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_dependencies_generics() {
-        let input = parse_quote! {
-            struct Components<A, B>{
-                node1: A,
-                node2: B,
-                node3: Node3,
-            }
-        };
-        derive_dependencies(input);
     }
 }

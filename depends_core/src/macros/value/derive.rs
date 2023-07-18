@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse2, Data, DeriveInput, Field};
+use syn::{parse2, spanned::Spanned, Field, ItemStruct};
 
 use super::parsed_attrs::ValueParsedAttrs;
 use crate::macros::{
@@ -10,42 +10,45 @@ use crate::macros::{
 };
 
 pub fn derive_value(input: TokenStream) -> TokenStream {
-    let DeriveInput {
+    derive_value_inner(input).unwrap_or_else(syn::Error::into_compile_error)
+}
+
+fn derive_value_inner(input: TokenStream) -> syn::Result<TokenStream> {
+    let ItemStruct {
         ident,
-        data,
+        fields,
         generics,
         attrs,
         ..
-    } = parse2::<DeriveInput>(input).unwrap();
-
-    let data = if let Data::Struct(data) = data {
-        data
-    } else {
-        panic!("This macro can only be derived for structs.");
-    };
+    } = parse2::<ItemStruct>(input)?;
 
     let name = ident.to_string();
     let (custom_clean, hashing) = {
-        let struct_attrs = get_depends_attrs(&attrs);
-        let field_attrs: Vec<_> = data
-            .fields
+        let struct_attrs = get_depends_attrs(&attrs)?;
+        let field_attrs: syn::Result<Vec<_>> = fields
             .iter()
             .map(|Field { attrs, ident, .. }| {
-                FieldAttrs {
+                Ok(FieldAttrs {
                     ident: ident
                         .as_ref()
-                        .expect("Only structs with named fields are supported.")
+                        .ok_or_else(|| {
+                            syn::Error::new(
+                                ident.span(),
+                                "Only structs with named fields are supported.",
+                            )
+                        })?
                         .clone(),
-                    field_attrs: get_depends_attrs(attrs),
-                }
+                    field_attrs: get_depends_attrs(attrs)?,
+                })
             })
             .collect();
+        let field_attrs = field_attrs?;
 
         let model = ValueAttrModel {
             struct_attrs,
             field_attrs,
         };
-        let parsed: ValueParsedAttrs = model.try_into().unwrap();
+        let parsed: ValueParsedAttrs = model.try_into()?;
         (
             parsed.custom_clean.unwrap_or(false),
             parsed.hashing.unwrap_or(HashLogic::Struct),
@@ -66,7 +69,7 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
 
     let hash_value_clause = hashing.to_tokens();
 
-    quote! {
+    Ok(quote! {
         impl #impl_generics ::depends::core::Named for #ident #ty_generics #where_clause {
             fn name() -> &'static str {
                 #name
@@ -81,10 +84,10 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
         }
 
         #clean_clause
-    }
+    })
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri), not(target_os = "windows")))]
 mod tests {
     use insta::assert_snapshot;
     use syn::parse_quote;
@@ -93,7 +96,6 @@ mod tests {
     use crate::macros::helpers::format_source;
 
     #[test]
-    #[ignore]
     fn test_input() {
         let input: TokenStream = parse_quote! {
             #[diesel(some_arg)]
@@ -108,21 +110,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    fn test_input_generics() {
-        let input = parse_quote! {
-            struct Foo<T> {
-                bar: Vec<usize>
-            }
-        };
-        assert_snapshot!(
-            "value_generics",
-            format_source(derive_value(input).to_string().as_str())
-        );
-    }
-
-    #[test]
-    #[ignore]
     fn test_input_hashed() {
         let input = parse_quote! {
             struct Foo<T> {
@@ -138,7 +125,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_input_unhashable() {
         let input = parse_quote! {
             #[depends(unhashable)]
@@ -154,7 +140,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_input_generics_custom_clean() {
         let input = parse_quote! {
             #[depends(custom_clean)]
@@ -166,46 +151,5 @@ mod tests {
             "value_generics_custom_clean",
             format_source(derive_value(input).to_string().as_str())
         );
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_input_multi_hash_attr_args() {
-        let input = parse_quote! {
-            #[depends(unhashable)]
-            struct Foo<T> {
-                bar: Vec<usize>,
-                #[depends(hash)]
-                number: usize,
-            }
-        };
-        derive_value(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_input_multi_attrs() {
-        let input = parse_quote! {
-            struct Foo<T> {
-                bar: Vec<usize>,
-                #[depends(hash)]
-                number: usize,
-                #[depends(hash)]
-                another: usize,
-            }
-        };
-        derive_value(input);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_input_on_enum() {
-        let input = parse_quote! {
-            enum Foo {
-                Thing(usize)
-            }
-        };
-
-        derive_value(input);
     }
 }

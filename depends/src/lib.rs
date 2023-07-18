@@ -3,7 +3,7 @@
 //! A library for ergonomic, performant, incremental computation between
 //! arbitrary types.
 //!
-//! ## Why would I want that
+//! ## Why would I want that?
 //!
 //! Most applications rely on some core logic which must respond to external
 //! events. Often, the logic to transform each event in to an action is
