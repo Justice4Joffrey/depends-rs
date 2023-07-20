@@ -181,10 +181,9 @@ let graph = MyGraphBuilder::create_dag(
     NumberValue::default(),
     NumberValue::default(),
 );
-let mut visitor = HashSet::new();
-graph.resolve(&mut visitor).unwrap();
 graph.update_node_0(70).unwrap();
-graph.resolve().unwrap();
+let mut visitor = HashSetVisitor::new();
+graph.resolve(&mut visitor).unwrap();
 ```
 
 ## Current Status
