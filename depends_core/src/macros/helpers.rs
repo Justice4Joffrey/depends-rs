@@ -4,8 +4,12 @@ use std::{
 };
 
 pub fn format_source(source: &str) -> String {
-    let mut rustfmt = Command::new("rustfmt")
-        .args(["+nightly", "--edition", "2021"])
+    let mut rustfmt = Command::new("rustfmt");
+    let rustfmt = rustfmt
+        .args(["--edition", "2021"])
+        .env("RUSTUP_TOOLCHAIN", "nightly");
+
+    let mut rustfmt = rustfmt
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()

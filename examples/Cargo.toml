@@ -1,13 +1,13 @@
 [package]
 name = "examples"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 publish = false
 
 [dependencies]
 depends = { path = "../depends", features = ["graphviz"] }
 
-chrono = "0.4.19"
+chrono = "0.4.26"
 csv = "1.2.2"
 serde = { version = "1.0.171", features = ["derive"] }
 
@@ -19,3 +19,6 @@ name = "early_exit"
 
 [[example]]
 name = "maths"
+
+[[example]]
+name = "graph"

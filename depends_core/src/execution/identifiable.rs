@@ -29,3 +29,59 @@ where
         T::id(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::hash::Hasher;
+
+    use serial_test::serial;
+
+    use super::*;
+    use crate::execution::{Clean, HashValue, InputNode, NodeHash, UpdateInput};
+
+    #[test]
+    #[serial]
+    fn test_identifiable_rc() {
+        struct Foo(i32);
+        impl Named for Foo {
+            fn name() -> &'static str {
+                "Foo"
+            }
+        }
+        impl Clean for Foo {
+            fn clean(&mut self) {}
+        }
+        impl HashValue for Foo {
+            fn hash_value(&self, _: &mut impl Hasher) -> NodeHash {
+                NodeHash::Hashed(42)
+            }
+        }
+        impl UpdateInput for Foo {
+            type Update = ();
+
+            fn update_mut(&mut self, _: Self::Update) {}
+        }
+        // seems coverage doesn't like these definitions
+        assert_eq!(Foo::name(), "Foo");
+        let mut foo = Foo(123);
+        let hasher = &mut std::collections::hash_map::DefaultHasher::new();
+        assert_eq!(foo.hash_value(hasher), NodeHash::Hashed(42));
+        foo.clean();
+        let node = InputNode::new(foo);
+        let rc = Rc::new(node);
+        assert_eq!(rc.id(), 0);
+        let node = InputNode::new(Foo(123));
+        let rc = Rc::new(node);
+        assert_eq!(rc.id(), 1);
+        NODE_ID.store(0, Ordering::Relaxed);
+    }
+
+    #[test]
+    #[serial]
+    fn test_next_node_id() {
+        assert_eq!(next_node_id(), 0);
+        assert_eq!(next_node_id(), 1);
+        assert_eq!(next_node_id(), 2);
+        NODE_ID.store(0, Ordering::Relaxed);
+    }
+}

@@ -8,6 +8,9 @@ use std::{
 
 use super::Identifiable;
 
+/// The default [Visitor] type.
+pub type HashSetVisitor = HashSet<usize>;
+
 /// A collection passed in to a graph, tracking the identifiers of each nodes to
 /// avoid traversing
 pub trait Visitor {
@@ -29,6 +32,9 @@ pub trait Visitor {
     {
     }
 
+    /// Touch a dependency group type. Useful for building graph visualisations.
+    fn touch_dependency_group(&mut self, _dep: &'static str) {}
+
     /// Undo a [touch](Self::touch). Useful for building graph visualisations.
     fn leave<N>(&mut self, _node: &N)
     where
@@ -39,7 +45,7 @@ pub trait Visitor {
     fn hasher(&self) -> Self::Hasher;
 }
 
-impl Visitor for HashSet<usize> {
+impl Visitor for HashSetVisitor {
     type Hasher = DefaultHasher;
 
     fn visit<N>(&mut self, node: &N) -> bool
@@ -54,6 +60,6 @@ impl Visitor for HashSet<usize> {
     }
 
     fn hasher(&self) -> Self::Hasher {
-        HashSet::<usize>::hasher(self).build_hasher()
+        HashSetVisitor::hasher(self).build_hasher()
     }
 }

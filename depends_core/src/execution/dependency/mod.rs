@@ -9,7 +9,7 @@ use std::{
 pub use dep_ref::DepRef;
 pub use dep_state::DependencyState;
 
-use super::{HashValue, Identifiable, Named, NodeHash, Resolve};
+use super::{HashValue, NodeHash, Resolve};
 use crate::execution::{error::ResolveResult, NodeState};
 
 /// Short-hand for a reference to a single dependency.
@@ -60,17 +60,5 @@ where
             (*last_state) = Some(current_state);
             Ok(DepRef::new(DependencyState::Dirty, data))
         }
-    }
-}
-
-impl<T: Named> Named for Dependency<T> {
-    fn name() -> &'static str {
-        T::name()
-    }
-}
-
-impl<T: Identifiable> Identifiable for Dependency<T> {
-    fn id(&self) -> usize {
-        self.dependency.id()
     }
 }

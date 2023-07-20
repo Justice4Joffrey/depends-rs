@@ -43,6 +43,8 @@ where
 
     /// Create this node with a specified Id. Useful for tests.
     pub fn new_with_id(dependencies: D, _: F, data: T, id: usize) -> Rc<Self> {
+        // TODO: we should store `update` and make the `update_derived` call
+        //  take a &self so that values can be provided for update fns.
         Rc::new(Self {
             dependencies,
             phantom: PhantomData::<F>,

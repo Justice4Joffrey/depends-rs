@@ -5,12 +5,11 @@
 [![Codecov](https://codecov.io/gh/Justice4Joffrey/depends-rs/coverage.svg?branch=master)](https://codecov.io/gh/Justice4Joffrey/depends-rs)
 [![Dependency status](https://deps.rs/repo/github/Justice4Joffrey/depends-rs/status.svg)](https://deps.rs/repo/github/Justice4Joffrey/depends-rs)
 
-A library for ergonomic, performant, incremental computation between
-arbitrary types.
+A library for ergonomic, performant, incremental computation between arbitrary types.
 
 See [benchmarks](https://github.com/Justice4Joffrey/depends-rs/tree/master/benches).
 
-## Why would I want that
+## Why would I want that?
 
 Most applications rely on some core logic which must respond to external
 events. Often, the logic to transform each event in to an action is
@@ -110,7 +109,7 @@ a.update(70).unwrap();
 
 // Any dependent values will be updated next time the graph is resolved.
 let res = c.resolve_root(&mut visitor).unwrap();
-assert_eq!(res.value, 420)
+assert_eq!(res.value, 420);
 ```
 
 Clearly, to implement a simple multiplication problem, a dependency graph is
@@ -121,19 +120,27 @@ testable code out of the box.
 
 ## Graphviz
 
+### Rendering
+
 Any graph built using `depends` can be converted to a [Graphviz](https://graphviz.org/) representation
 by passing a `GraphvizVisitor` (this requires the feature `graphviz`).
 
 ```rust
-let mut visitor = GraphvizVisitor::new(); graph.resolve( & mut visitor).unwrap(); assert_eq!(
+let mut visitor = GraphvizVisitor::new();
+graph.resolve(&mut visitor).unwrap();
+assert_eq!(
     graph.render().unwrap(),
     r#"
-digraph G {
-  2[label="NumberInput"];
-  0[label="NumberInput"];
-  1[label="NumberInput"];
-  0 -> 2[label="Multiply"];
-  1 -> 2[label="Multiply"];
+digraph Dag {
+  node_0 [label="NumberValue"];
+  node_1 [label="NumberValue"];
+  node_0 -> node_1 [label="Square"];
+  node_2 [label="NumberValue"];
+  node_3 [label="NumberValue"];
+  node_1 -> node_3 [label="Add", class="TwoNumbersDep"];
+  node_2 -> node_3 [label="Add", class="TwoNumbersDep"];
+  node_4 [label="NumberValue"];
+  node_3 -> node_4 [label="Square"];
 }
 "#);
 ```
@@ -141,6 +148,44 @@ digraph G {
 The graph in the above example is rendered below.
 
 ![Alt text](./product.svg)
+
+### Interpreting
+
+It's also possible to _build_ strongly-typed graphs in `depends` from a Graphviz definition.
+
+This has the advantage of safely implementing `Send` for the graph type, despite the fact that internally it uses `Rc`s.
+```rust
+// `label` is the name of the type in scope to use as a node.
+// `class` is the name of the dependency type in scope (required iff there are multiple edges to a node).
+#[derive(Graph)]
+#[depends(
+  digraph Dag {
+    node_0 [label="NumberValue"];
+    node_1 [label="NumberValue"];
+    node_0 -> node_1 [label="Square"];
+    node_2 [label="NumberValue"];
+    node_3 [label="NumberValue"];
+    node_1 -> node_3 [label="Add", class="TwoNumbersDep"];
+    node_2 -> node_3 [label="Add", class="TwoNumbersDep"];
+    node_4 [label="NumberValue"];
+    node_3 -> node_4 [label="Square"];
+  }
+)]
+struct MyGraphBuilder;
+
+// create a graph with some initial values.
+let graph = MyGraphBuilder::create_dag(
+    NumberValue::new(7),
+    NumberValue::new(6),
+    NumberValue::default(),
+    NumberValue::default(),
+    NumberValue::default(),
+);
+let mut visitor = HashSet::new();
+graph.resolve(&mut visitor).unwrap();
+graph.update_node_0(70).unwrap();
+graph.resolve().unwrap();
+```
 
 ## Current Status
 
@@ -160,6 +205,8 @@ Feel free to experiment with the crate, apply it to your problems and pass on an
 You can run the examples from `examples/` with:
 
 ```
+
 cd examples
 cargo run --example <example_name>
+
 ```

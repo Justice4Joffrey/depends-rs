@@ -1,5 +1,5 @@
 use std::{
-    collections::{hash_map::DefaultHasher, BTreeMap, BTreeSet, HashSet},
+    collections::{hash_map::DefaultHasher, BTreeMap, HashSet},
     hash::BuildHasher,
 };
 
@@ -9,8 +9,15 @@ use crate::core::{Identifiable, Visitor};
 struct Node {
     id: usize,
     name: &'static str,
-    edges: BTreeSet<usize>,
+    edges: Vec<usize>,
     operation: Option<&'static str>,
+    dependency: Option<&'static str>,
+}
+
+impl Node {
+    fn node_identifier(&self) -> String {
+        format!("node_{}", self.id)
+    }
 }
 
 /// A [Visitor] which builds a `Graphviz` representation of a given graph.
@@ -21,7 +28,7 @@ struct Node {
 /// # use depends::{
 /// #     core::{
 /// #         Dependency, HashValue, Resolve, UpdateDerived, UpdateInput,
-/// #         NodeHash, InputNode, DerivedNode, TargetMut,
+/// #         NodeHash, InputNode, DerivedNode, TargetMut, SingleRef,
 /// #         error::{EarlyExit, ResolveResult}
 /// #     },
 /// #     derives::{Dependencies, Value, Operation},
@@ -55,6 +62,22 @@ struct Node {
 /// #     }
 /// # }
 /// #
+/// # #[derive(Operation)]
+/// # struct Square;
+/// #
+/// # impl UpdateDerived for Square{
+/// #     type Input<'a> = SingleRef<'a, NumberValue> where Self: 'a;
+/// #     type Target<'a> = TargetMut<'a, NumberValue> where Self: 'a;
+/// #
+/// #     fn update_derived(
+/// #         input: Self::Input<'_>,
+/// #         mut target: TargetMut<'_, NumberValue>,
+/// #     ) -> Result<(), EarlyExit> {
+/// #         target.value = input.value.pow(2);
+/// #         Ok(())
+/// #     }
+/// # }
+/// #
 /// # #[derive(Dependencies)]
 /// # pub struct TwoNumbers {
 /// #     left: NumberValue,
@@ -65,26 +88,37 @@ struct Node {
 ///
 /// // Compose a graph.
 /// let left = InputNode::new(NumberValue::default());
+/// let left_squared = DerivedNode::new(
+///     Dependency::new(Rc::clone(&left)),
+///     Square,
+///     NumberValue::default(),
+/// );
 /// let right = InputNode::new(NumberValue::default());
-/// let two_numbers = TwoNumbers::init(left, right);
+/// let two_numbers = TwoNumbers::init(left_squared, right);
 /// let sum = DerivedNode::new(two_numbers, Add, NumberValue::default());
+/// let sum_squared = DerivedNode::new(Dependency::new(sum), Square, NumberValue::default());
 ///
 /// let mut visitor = GraphvizVisitor::new();
 ///
 /// // Resolve the graph with this visitor.
 /// // Be sure NOT to use `resolve_root`, as this will clear the visitor's state.
-/// sum.resolve(&mut visitor).unwrap();
+/// sum_squared.resolve(&mut visitor).unwrap();
 ///
+/// println!("{}", visitor.render().unwrap());
 /// // A Graphviz representation is now available on the visitor!
 /// assert_eq!(
 ///     visitor.render().unwrap(),
 ///     r#"
-/// digraph G {
-///   0[label="NumberValue"];
-///   1[label="NumberValue"];
-///   2[label="NumberValue"];
-///   0 -> 2[label="Add"];
-///   1 -> 2[label="Add"];
+/// digraph Dag {
+///   node_0 [label="NumberValue"];
+///   node_1 [label="NumberValue"];
+///   node_0 -> node_1 [label="Square"];
+///   node_2 [label="NumberValue"];
+///   node_3 [label="NumberValue"];
+///   node_1 -> node_3 [label="Add", class="TwoNumbersDep"];
+///   node_2 -> node_3 [label="Add", class="TwoNumbersDep"];
+///   node_4 [label="NumberValue"];
+///   node_3 -> node_4 [label="Square"];
 /// }
 /// "#
 ///     .trim()
@@ -109,18 +143,27 @@ impl GraphvizVisitor {
             None
         } else {
             let mut lines = Vec::new();
-            lines.push(String::from("digraph G {"));
+            lines.push(String::from("digraph Dag {"));
             self.nodes.values().for_each(|n| {
-                lines.push(format!("  {}[label=\"{}\"];", n.id, n.name));
+                lines.push(format!("  {} [label=\"{}\"];", n.node_identifier(), n.name));
                 // TODO: it would be nice to make this type-system enforced
                 //  at the moment, it's not guaranteed by the type system
                 //  that nodes.len() == 0 iff operation.is_none()
                 //  this would likely be done by splitting `touch` in to
                 //  `touch_input` and `touch_derived`
                 if let Some(op) = n.operation {
-                    let edge_label = format!("[label=\"{}\"]", op);
+                    let class = n
+                        .dependency
+                        .map(|d| format!(", class=\"{}\"", d))
+                        .unwrap_or_else(String::new);
+                    let edge_label = format!("[label=\"{}\"{}]", op, class);
                     n.edges.iter().for_each(|c| {
-                        lines.push(format!("  {} -> {}{};", c, n.id, edge_label));
+                        lines.push(format!(
+                            "  {} -> {} {};",
+                            self.nodes[c].node_identifier(),
+                            n.node_identifier(),
+                            edge_label
+                        ));
                     });
                 }
             });
@@ -154,10 +197,18 @@ impl Visitor for GraphvizVisitor {
             Node {
                 id: node.id(),
                 name: N::name(),
-                edges: BTreeSet::default(),
+                edges: Vec::default(),
                 operation,
+                dependency: None,
             }
         });
+    }
+
+    fn touch_dependency_group(&mut self, dep: &'static str) {
+        let last = self.stack.last().unwrap();
+        if let Some(n) = self.nodes.get_mut(last) {
+            n.dependency = Some(dep);
+        }
     }
 
     fn leave<N>(&mut self, node: &N)
@@ -167,7 +218,9 @@ impl Visitor for GraphvizVisitor {
         let last = self.stack.pop().unwrap();
         assert_eq!(last, node.id());
         if let Some(parent) = self.stack.last() {
-            self.nodes.get_mut(parent).map(|n| n.edges.insert(last));
+            if let Some(n) = self.nodes.get_mut(parent) {
+                n.edges.push(last)
+            }
         }
     }
 

@@ -2,7 +2,7 @@ permissions:
   contents: read
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
 name: safety
 jobs:
@@ -14,14 +14,16 @@ jobs:
           submodules: true
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
       - run: |
-            # to get the symbolizer for debug symbol resolution
-            sudo apt install llvm
-            # to fix buggy leak analyzer:
-            # https://github.com/japaric/rust-san#unrealiable-leaksanitizer
-            sed -i '/\[features\]/i [profile.dev]' Cargo.toml
-            sed -i '/profile.dev/a opt-level = 1' Cargo.toml
-            cat Cargo.toml
+          # to get the symbolizer for debug symbol resolution
+          sudo apt install llvm
+          # to fix buggy leak analyzer:
+          # https://github.com/japaric/rust-san#unrealiable-leaksanitizer
+          sed -i '/\[features\]/i [profile.dev]' Cargo.toml
+          sed -i '/profile.dev/a opt-level = 1' Cargo.toml
+          cat Cargo.toml
         name: Enable debug symbols
       - name: cargo test -Zsanitizer=address
         # only --lib --tests b/c of https://github.com/rust-lang/rust/issues/53945
@@ -49,6 +51,6 @@ jobs:
           toolchain: ${{ env.NIGHTLY }}
           components: miri
       - name: cargo miri test
-        run: cargo miri test
+        run: cargo miri test --all-features
         env:
           MIRIFLAGS: "-Zmiri-tag-raw-pointers"

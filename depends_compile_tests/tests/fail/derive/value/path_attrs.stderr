@@ -1,0 +1,5 @@
+error: Unexpected attribute ""is""
+ --> tests/fail/derive/value/path_attrs.rs:4:11
+  |
+4 | #[depends(is::unhashable)]
+  |           ^^

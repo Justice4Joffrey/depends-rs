@@ -9,12 +9,12 @@ keywords = ["dag", "graph", "incremental", "computation", "cache"]
 readme = "../README.md"
 
 [dependencies]
-depends_core = {path = "../depends_core", version = "0.7.1"}
-depends_derives = {path = "../depends_derives", version = "0.7.1"}
+depends_core = { path = "../depends_core", version = "0.7.1" }
+depends_derives = { path = "../depends_derives", version = "0.7.1" }
 
 [features]
 default = []
-graphviz = []
+graphviz = ["depends_core/graphviz", "depends_derives/graphviz"]
 hashbrown = ["depends_core/hashbrown"]
 
 

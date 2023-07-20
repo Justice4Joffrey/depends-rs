@@ -32,18 +32,18 @@ fn test_graphviz() {
         println!("{}", visitor.render().unwrap());
         assert_eq!(
             r#"
-digraph G {
-  0[label="NumberValue"];
-  1[label="NumberValue"];
-  2[label="NumberValue"];
-  3[label="NumberValue"];
-  2 -> 3[label="Square"];
-  4[label="NumberValue"];
-  0 -> 4[label="Add"];
-  1 -> 4[label="Add"];
-  5[label="NumberValue"];
-  3 -> 5[label="Multiply"];
-  4 -> 5[label="Multiply"];
+digraph Dag {
+  node_0 [label="NumberValue"];
+  node_1 [label="NumberValue"];
+  node_2 [label="NumberValue"];
+  node_3 [label="NumberValue"];
+  node_2 -> node_3 [label="Square"];
+  node_4 [label="NumberValue"];
+  node_0 -> node_4 [label="Add", class="TwoNumbersDep"];
+  node_1 -> node_4 [label="Add", class="TwoNumbersDep"];
+  node_5 [label="NumberValue"];
+  node_3 -> node_5 [label="Multiply", class="TwoNumbersDep"];
+  node_4 -> node_5 [label="Multiply", class="TwoNumbersDep"];
 }
     "#
             .trim(),

@@ -21,6 +21,7 @@
 /// ```
 /// # use depends_core::execution::NodeHash;
 /// // not equal
+/// assert_ne!(NodeHash::default(), NodeHash::default());
 /// assert_ne!(NodeHash::NotHashed, NodeHash::NotHashed);
 /// assert_ne!(NodeHash::NotHashed, NodeHash::Hashed(0));
 /// assert_ne!(NodeHash::Hashed(0), NodeHash::Hashed(1));
@@ -42,5 +43,17 @@ impl PartialEq for NodeHash {
             (Self::Hashed(a), Self::Hashed(b)) => a == b,
             _ => false,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_node_hash_derives() {
+        let hash = NodeHash::Hashed(420);
+        assert_eq!(hash.clone(), hash);
+        assert_eq!("Hashed(420)", format!("{:?}", hash));
     }
 }

@@ -8,6 +8,7 @@ mod input;
 mod is_dirty;
 mod named;
 mod node;
+mod primitives;
 mod resolve;
 mod update_derived;
 mod update_input;
@@ -25,4 +26,9 @@ pub use node::{NodeHash, NodeRef, NodeState};
 pub use resolve::Resolve;
 pub use update_derived::UpdateDerived;
 pub use update_input::UpdateInput;
-pub use visitor::Visitor;
+pub use visitor::{HashSetVisitor, Visitor};
+
+#[cfg(feature = "graphviz")]
+mod graph_create;
+#[cfg(feature = "graphviz")]
+pub use graph_create::GraphCreate;

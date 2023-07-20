@@ -1,0 +1,5 @@
+error: Attribute specified more than once
+ --> tests/fail/derive/value/conflicting_hash.rs:7:15
+  |
+7 |     #[depends(hash)]
+  |               ^^^^
