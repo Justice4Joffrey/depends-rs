@@ -159,6 +159,7 @@ dependencies = [
  "chrono",
  "csv",
  "depends",
+ "hashbrown 0.14.0",
  "serde",
 ]
 
