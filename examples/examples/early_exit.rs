@@ -5,12 +5,9 @@ use std::{
 };
 
 use depends::{
-    core::{
-        error::{EarlyExit, ResolveError},
-        Dependency, DerivedNode, InputNode, Resolve, SingleRef, TargetMut, UpdateDerived,
-        UpdateInput,
-    },
     derives::{Dependencies, Operation, Value},
+    error::{EarlyExit, ResolveError},
+    Dependency, DerivedNode, InputNode, Resolve, SingleRef, TargetMut, UpdateDerived, UpdateInput,
 };
 
 /// A dummy tracker for the number of open orders.

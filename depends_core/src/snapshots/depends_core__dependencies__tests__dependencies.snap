@@ -1,0 +1,96 @@
+---
+source: depends_core/src/dependencies.rs
+assertion_line: 206
+expression: format_source(derive_dependencies(input).to_string().as_str())
+---
+struct ComponentsDep<A, B, C> {
+    node1: ::depends::Dependency<::std::rc::Rc<A>>,
+    node2: ::depends::Dependency<::std::rc::Rc<B>>,
+    node3: ::depends::Dependency<::std::rc::Rc<C>>,
+}
+impl<A, B, C> ::depends::Named for ComponentsDep<A, B, C> {
+    fn name() -> &'static str {
+        "ComponentsDep"
+    }
+}
+struct ComponentsRef<'a> {
+    node1: ::depends::DepRef<'a, ::std::cell::Ref<'a, ::depends::NodeState<Node1>>>,
+    node2: ::depends::DepRef<'a, ::std::cell::Ref<'a, ::depends::NodeState<Node2>>>,
+    node3: ::depends::DepRef<'a, ::std::cell::Ref<'a, ::depends::NodeState<Node3>>>,
+}
+impl Components {
+    pub fn init<A, B, C>(
+        node1: ::std::rc::Rc<A>,
+        node2: ::std::rc::Rc<B>,
+        node3: ::std::rc::Rc<C>,
+    ) -> ComponentsDep<A, B, C>
+    where
+        for<'a> A:
+            ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node1>>> + 'a,
+        for<'a> B:
+            ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node2>>> + 'a,
+        for<'a> C:
+            ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node3>>> + 'a,
+    {
+        ComponentsDep {
+            node1: ::depends::Dependency::new(node1),
+            node2: ::depends::Dependency::new(node2),
+            node3: ::depends::Dependency::new(node3),
+        }
+    }
+
+    #[allow(dead_code)]
+    fn __unused(&self) {
+        let _ = self.node1;
+        let _ = self.node2;
+        let _ = self.node3;
+    }
+}
+impl<A, B, C> From<(::std::rc::Rc<A>, ::std::rc::Rc<B>, ::std::rc::Rc<C>)>
+    for ComponentsDep<A, B, C>
+where
+    for<'a> A:
+        ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node1>>> + 'a,
+    for<'a> B:
+        ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node2>>> + 'a,
+    for<'a> C:
+        ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node3>>> + 'a,
+{
+    fn from((node1, node2, node3): (::std::rc::Rc<A>, ::std::rc::Rc<B>, ::std::rc::Rc<C>)) -> Self {
+        Self {
+            node1: ::depends::Dependency::new(node1),
+            node2: ::depends::Dependency::new(node2),
+            node3: ::depends::Dependency::new(node3),
+        }
+    }
+}
+impl<A, B, C> ::depends::Resolve for ComponentsDep<A, B, C>
+where
+    for<'a> A:
+        ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node1>>> + 'a,
+    for<'a> B:
+        ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node2>>> + 'a,
+    for<'a> C:
+        ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node3>>> + 'a,
+{
+    type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
+
+    fn resolve(
+        &self,
+        visitor: &mut impl ::depends::Visitor,
+    ) -> ::depends::error::ResolveResult<Self::Output<'_>> {
+        use ::depends::Named;
+        visitor.touch_dependency_group(Self::name());
+        Ok(ComponentsRef {
+            node1: self.node1.resolve(visitor)?,
+            node2: self.node2.resolve(visitor)?,
+            node3: self.node3.resolve(visitor)?,
+        })
+    }
+}
+impl ::depends::IsDirty for ComponentsRef<'_> {
+    fn is_dirty(&self) -> bool {
+        self.node1.is_dirty() || self.node2.is_dirty() || self.node3.is_dirty()
+    }
+}
+

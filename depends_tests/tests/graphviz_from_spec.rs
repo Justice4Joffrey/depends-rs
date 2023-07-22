@@ -1,10 +1,7 @@
 mod common;
 
 use common::*;
-use depends::{
-    core::{HashSetVisitor, Resolve},
-    derives::Graph,
-};
+use depends::{derives::Graph, HashSetVisitor, Resolve};
 
 #[derive(Graph)]
 #[depends(

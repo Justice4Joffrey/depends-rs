@@ -1,0 +1,11 @@
+---
+source: depends_core/src/macros/operation.rs
+assertion_line: 40
+expression: format_source(derive_operation(input).to_string().as_str())
+---
+impl ::depends::Named for Operation {
+    fn name() -> &'static str {
+        "Operation"
+    }
+}
+

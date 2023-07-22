@@ -2,10 +2,7 @@ use std::{cell::Ref, path::Path};
 
 use benches::{read_csv_file, read_csv_update, Phase, SocialNetworkConfig};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use depends::{
-    core::{error::ResolveResult, GraphCreate, NodeState, Resolve, Visitor},
-    derives::Graph,
-};
+use depends::{derives::Graph, error::ResolveResult, GraphCreate, NodeState, Resolve, Visitor};
 use envconfig::Envconfig;
 use examples::{models::*, *};
 use hashbrown::HashSet;

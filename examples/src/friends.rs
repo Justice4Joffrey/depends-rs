@@ -1,7 +1,4 @@
-use depends::{
-    core::{Clean, UpdateInput},
-    derives::Value,
-};
+use depends::{derives::Value, Clean, UpdateInput};
 use hashbrown::{HashMap, HashSet};
 
 use crate::models::Friend;

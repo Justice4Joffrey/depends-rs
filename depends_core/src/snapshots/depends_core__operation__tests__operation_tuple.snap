@@ -1,0 +1,11 @@
+---
+source: depends_core/src/operation.rs
+assertion_line: 82
+expression: format_source(derive_operation(input).to_string().as_str())
+---
+impl ::depends::Named for TupleOperation {
+    fn name() -> &'static str {
+        "TupleOperation"
+    }
+}
+

@@ -2,10 +2,7 @@ mod common;
 
 use std::rc::Rc;
 
-use depends::{
-    core::{Dependency, DerivedNode, InputNode, Resolve},
-    graphviz::GraphvizVisitor,
-};
+use depends::{graphviz::GraphvizVisitor, Dependency, DerivedNode, InputNode, Resolve};
 
 use crate::common::*;
 

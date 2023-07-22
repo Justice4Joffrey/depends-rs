@@ -1,0 +1,113 @@
+---
+source: depends_core/src/macros/graph.rs
+assertion_line: 228
+expression: format_source(derive_graph(input).to_string().as_str())
+---
+mod __depends_graph_components {
+    use super::*;
+    pub struct Dag<R> {
+        node_0: ::std::rc::Rc<::depends::InputNode<Comments>>,
+        node_1: ::std::rc::Rc<::depends::InputNode<Posts>>,
+        node_2: ::std::rc::Rc<::depends::InputNode<Likes>>,
+        node_4: R,
+    }
+    unsafe impl<R> Send for Dag<R> {}
+    impl<R> Dag<R>
+    where
+        for<'a> R: ::depends::Resolve<
+                Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<PostScoresQuery>>,
+            > + 'a,
+    {
+        fn new(
+            node_0: ::std::rc::Rc<::depends::InputNode<Comments>>,
+            node_1: ::std::rc::Rc<::depends::InputNode<Posts>>,
+            node_2: ::std::rc::Rc<::depends::InputNode<Likes>>,
+            node_4: R,
+        ) -> Self {
+            Self {
+                node_0,
+                node_1,
+                node_2,
+                node_4,
+            }
+        }
+
+        pub fn update_node_0(
+            &self,
+            update: <Comments as ::depends::UpdateInput>::Update,
+        ) -> ::depends::error::ResolveResult<()> {
+            self.node_0.update(update)
+        }
+
+        pub fn update_node_1(
+            &self,
+            update: <Posts as ::depends::UpdateInput>::Update,
+        ) -> ::depends::error::ResolveResult<()> {
+            self.node_1.update(update)
+        }
+
+        pub fn update_node_2(
+            &self,
+            update: <Likes as ::depends::UpdateInput>::Update,
+        ) -> ::depends::error::ResolveResult<()> {
+            self.node_2.update(update)
+        }
+    }
+    impl<R> ::depends::Resolve for Dag<R>
+    where
+        for<'a> R: ::depends::Resolve<
+                Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<PostScoresQuery>>,
+            > + 'a,
+    {
+        type Output < 'a > = < R as :: depends :: core :: Resolve > :: Output < 'a > where Self : 'a ;
+
+        fn resolve(
+            &self,
+            visitor: &mut impl ::depends::Visitor,
+        ) -> ::depends::error::ResolveResult<Self::Output<'_>> {
+            self.node_4.resolve(visitor)
+        }
+    }
+    impl Components {
+        #[allow(clippy::too_many_arguments)]
+        pub fn create_dag(
+            node_0: Comments,
+            node_1: Posts,
+            node_2: Likes,
+            node_3: CommentsToPosts,
+            node_4: PostScoresQuery,
+        ) -> __depends_graph_components::Dag<
+            impl for<'a> ::depends::Resolve<
+                Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<PostScoresQuery>>,
+            >,
+        > {
+            let node_0 = ::depends::InputNode::new(node_0);
+            let node_1 = ::depends::InputNode::new(node_1);
+            let node_2 = ::depends::InputNode::new(node_2);
+            let node_3 = ::depends::DerivedNode::new(
+                ::depends::Dependency::new(::std::rc::Rc::clone(&node_0)),
+                CommentPostIds,
+                node_3,
+            );
+            let node_4 = ::depends::DerivedNode::new(
+                {
+                    let d: Update<_, _, _, _> = (
+                        ::std::rc::Rc::clone(&node_0),
+                        ::std::rc::Rc::clone(&node_1),
+                        ::std::rc::Rc::clone(&node_2),
+                        ::std::rc::Rc::clone(&node_3),
+                    )
+                        .into();
+                    d
+                },
+                UpdatePostScoresQuery,
+                node_4,
+            );
+            __depends_graph_components::Dag::new(node_0, node_1, node_2, node_4)
+        }
+    }
+    impl ::depends::GraphCreate for Components {
+        type Graph<R> = Dag<R>;
+    }
+}
+

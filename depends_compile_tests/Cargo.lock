@@ -114,8 +114,10 @@ dependencies = [
 name = "depends"
 version = "0.8.0"
 dependencies = [
- "depends_core",
+ "ahash",
  "depends_derives",
+ "hashbrown 0.14.0",
+ "thiserror",
 ]
 
 [[package]]
@@ -131,8 +133,6 @@ dependencies = [
 name = "depends_core"
 version = "0.8.0"
 dependencies = [
- "ahash",
- "hashbrown 0.14.0",
  "petgraph",
  "proc-macro-error",
  "proc-macro2",

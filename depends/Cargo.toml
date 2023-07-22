@@ -9,13 +9,19 @@ keywords = ["dag", "graph", "incremental", "computation", "cache"]
 readme = "../README.md"
 
 [dependencies]
-depends_core = { path = "../depends_core", version = "0.8.0" }
 depends_derives = { path = "../depends_derives", version = "0.8.0" }
+
+ahash = { version = "0.8.3", optional = true }
+hashbrown = { version = "0.14.0", optional = true, features = ["ahash"] }
+thiserror = "1.0.43"
+
+[dev-dependencies]
+serial_test = "2.0.0"
 
 [features]
 default = []
-graphviz = ["depends_core/graphviz", "depends_derives/graphviz"]
-hashbrown = ["depends_core/hashbrown"]
+graphviz = ["depends_derives/graphviz"]
+hashbrown = ["dep:ahash", "dep:hashbrown"]
 
 
 [package.metadata.docs.rs]
