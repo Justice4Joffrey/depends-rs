@@ -34,3 +34,20 @@ impl<T> Deref for DepRef<'_, T> {
         &self.data
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dep_ref() {
+        let mut dep_ref = DepRef::new(DependencyState::Dirty, 123_i32);
+        assert_eq!(
+            "DepRef { state: Dirty, data: 123, phantom: PhantomData<&i32> }",
+            format!("{:?}", dep_ref)
+        );
+        assert!(dep_ref.is_dirty());
+        dep_ref.state = DependencyState::Clean;
+        assert!(!dep_ref.is_dirty());
+    }
+}
