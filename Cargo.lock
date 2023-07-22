@@ -80,6 +80,7 @@ dependencies = [
  "depends",
  "envconfig",
  "examples",
+ "hashbrown 0.14.0",
  "regex",
  "serde",
 ]
@@ -439,6 +440,7 @@ dependencies = [
  "chrono",
  "csv",
  "depends",
+ "hashbrown 0.14.0",
  "serde",
 ]
 

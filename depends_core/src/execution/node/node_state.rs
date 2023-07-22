@@ -69,3 +69,26 @@ impl<T> DerefMut for NodeState<T> {
         &mut self.data
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_node_state() {
+        let mut state = NodeState::new(123_i32);
+        assert_eq!(
+            "NodeState { node_hash: NotHashed, data: 123 }",
+            format!("{:?}", state)
+        );
+        assert_eq!(<NodeState<i32> as Named>::name(), "i32");
+        let hasher = &mut std::collections::hash_map::DefaultHasher::new();
+        state.update_node_hash(hasher);
+        assert_eq!(state.node_hash(), NodeHash::Hashed(14370432302296844161));
+        assert_eq!(
+            state.node_hash_mut(),
+            &mut NodeHash::Hashed(14370432302296844161)
+        );
+        state.clean();
+    }
+}

@@ -11,6 +11,7 @@ use crate::execution::{
 
 /// A node which has no dependencies. Leaf nodes receive their state from
 /// _outside_ of the graph structure from calls to [update](Self::update).
+#[derive(Debug)]
 pub struct InputNode<T> {
     /// The resolve state of this node. This is used to ensure that a
     /// node is cleaned only once per resolve.

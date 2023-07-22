@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
 use depends::{
     core::{Clean, UpdateInput},
     derives::Value,
 };
+use hashbrown::HashMap;
 
 use crate::models::Post;
 

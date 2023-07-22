@@ -1,9 +1,8 @@
-use std::collections::{HashMap, HashSet};
-
 use depends::{
     core::{Clean, UpdateInput},
     derives::Value,
 };
+use hashbrown::{HashMap, HashSet};
 
 use crate::models::Friend;
 

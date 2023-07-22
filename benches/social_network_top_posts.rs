@@ -1,4 +1,4 @@
-use std::{cell::Ref, collections::HashSet, path::Path};
+use std::{cell::Ref, path::Path};
 
 use benches::{read_csv_file, read_csv_update, Phase, SocialNetworkConfig};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
@@ -8,6 +8,7 @@ use depends::{
 };
 use envconfig::Envconfig;
 use examples::{models::*, *};
+use hashbrown::HashSet;
 
 #[derive(Graph)]
 #[depends(

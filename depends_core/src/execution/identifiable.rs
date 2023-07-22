@@ -14,6 +14,11 @@ pub fn next_node_id() -> usize {
     NODE_ID.fetch_add(1, Ordering::Relaxed)
 }
 
+#[cfg(test)]
+pub fn reset_node_id() {
+    NODE_ID.store(0, Ordering::Relaxed);
+}
+
 /// A unique integer value assigned to each node created in a particular
 /// runtime, allowing a [Visitor](super::Visitor) to track visited nodes when
 /// resolving graphs.
@@ -42,6 +47,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_identifiable_rc() {
+        reset_node_id();
         struct Foo(i32);
         impl Named for Foo {
             fn name() -> &'static str {
@@ -79,6 +85,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_next_node_id() {
+        reset_node_id();
         assert_eq!(next_node_id(), 0);
         assert_eq!(next_node_id(), 1);
         assert_eq!(next_node_id(), 2);
