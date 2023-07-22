@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use depends::{core::Resolve, derives::Graph};
+use depends::{derives::Graph, Resolve};
 
 use crate::maths::*;
 

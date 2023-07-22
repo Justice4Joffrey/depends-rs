@@ -5,12 +5,10 @@ use std::{
 };
 
 use depends::{
-    core::{
-        error::EarlyExit, Dependency, DerivedNode, InputNode, Resolve, SingleRef, TargetMut,
-        UpdateDerived, UpdateInput,
-    },
     derives::{Dependencies, Operation, Value},
+    error::EarlyExit,
     graphviz::GraphvizVisitor,
+    Dependency, DerivedNode, InputNode, Resolve, SingleRef, TargetMut, UpdateDerived, UpdateInput,
 };
 
 /// A unit of data within a graph.

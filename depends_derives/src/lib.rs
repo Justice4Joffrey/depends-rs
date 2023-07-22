@@ -28,7 +28,7 @@ use proc_macro_error::proc_macro_error;
 #[proc_macro_error]
 #[proc_macro_derive(Value, attributes(depends))]
 pub fn derive_value(input: TokenStream) -> TokenStream {
-    depends_core::macros::derive_value(input.into()).into()
+    depends_core::derive_value(input.into()).into()
 }
 
 /// Mark this type as a set of dependencies for a `DerivedNode`.
@@ -71,7 +71,7 @@ pub fn derive_value(input: TokenStream) -> TokenStream {
 #[proc_macro_error]
 #[proc_macro_derive(Dependencies)]
 pub fn derive_dependencies(input: TokenStream) -> TokenStream {
-    depends_core::macros::derive_dependencies(input.into()).into()
+    depends_core::derive_dependencies(input.into()).into()
 }
 
 /// Mark this type as a an `Operation`. This implements `Named` for
@@ -109,7 +109,7 @@ pub fn derive_dependencies(input: TokenStream) -> TokenStream {
 #[proc_macro_error]
 #[proc_macro_derive(Operation)]
 pub fn derive_operation(input: TokenStream) -> TokenStream {
-    depends_core::macros::derive_operation(input.into()).into()
+    depends_core::derive_operation(input.into()).into()
 }
 
 #[cfg(feature = "graphviz")]
@@ -174,5 +174,5 @@ pub fn derive_operation(input: TokenStream) -> TokenStream {
 #[proc_macro_error]
 #[proc_macro_derive(Graph, attributes(depends))]
 pub fn graph(input: TokenStream) -> TokenStream {
-    depends_core::macros::derive_graph(input.into()).into()
+    depends_core::derive_graph(input.into()).into()
 }

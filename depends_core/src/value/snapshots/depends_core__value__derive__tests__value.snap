@@ -1,0 +1,23 @@
+---
+source: depends_core/src/value/derive.rs
+assertion_line: 106
+expression: format_source(derive_value(input).to_string().as_str())
+---
+impl ::depends::Named for Foo {
+    fn name() -> &'static str {
+        "Foo"
+    }
+}
+impl ::depends::HashValue for Foo {
+    fn hash_value(&self, hasher: &mut impl ::std::hash::Hasher) -> ::depends::NodeHash {
+        use ::std::hash::Hash;
+        ::depends::NodeHash::Hashed({
+            self.hash(hasher);
+            hasher.finish()
+        })
+    }
+}
+impl ::depends::Clean for Foo {
+    fn clean(&mut self) {}
+}
+

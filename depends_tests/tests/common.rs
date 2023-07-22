@@ -3,8 +3,9 @@
 use std::hash::{Hash, Hasher};
 
 use depends::{
-    core::{error::EarlyExit, SingleRef, TargetMut, UpdateDerived, UpdateInput},
     derives::{Dependencies, Operation, Value},
+    error::EarlyExit,
+    SingleRef, TargetMut, UpdateDerived, UpdateInput,
 };
 
 /// A unit of data within a graph.

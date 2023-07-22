@@ -2,8 +2,9 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 
 use chrono::{DateTime, Utc};
 use depends::{
-    core::{error::EarlyExit, TargetMut, UpdateDerived},
     derives::{Dependencies, Operation, Value},
+    error::EarlyExit,
+    TargetMut, UpdateDerived,
 };
 use hashbrown::HashMap;
 

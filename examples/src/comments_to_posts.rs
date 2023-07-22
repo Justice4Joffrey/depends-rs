@@ -1,6 +1,7 @@
 use depends::{
-    core::{error::EarlyExit, SingleRef, TargetMut, UpdateDerived},
     derives::{Operation, Value},
+    error::EarlyExit,
+    SingleRef, TargetMut, UpdateDerived,
 };
 use hashbrown::HashMap;
 

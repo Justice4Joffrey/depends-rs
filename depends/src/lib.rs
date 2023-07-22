@@ -21,10 +21,10 @@
 //! # use std::collections::HashSet;
 //! # use std::rc::Rc;
 //! #
-//! # use depends::core::error::{EarlyExit, ResolveResult};
-//! # use depends::core::{NodeState, SingleRef, TargetMut};
+//! # use depends::error::{EarlyExit, ResolveResult};
+//! # use depends::{NodeState, SingleRef, TargetMut};
 //! # use depends::{
-//! #     core::{DerivedNode, InputNode, Resolve, UpdateDerived, UpdateInput},
+//! #     DerivedNode, InputNode, Resolve, UpdateDerived, UpdateInput,
 //! #     derives::{Dependencies, Operation, Value},
 //! # };
 //! /// A unit of data within a graph.
@@ -131,10 +131,9 @@
 
 #![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
 
-pub mod core {
-    //! Core types and functionality for `depends`.
-    pub use depends_core::execution::*;
-}
+mod execution;
+pub use execution::*;
+
 pub mod derives {
     //! Derive macros for `depends`.
     pub use depends_derives::*;

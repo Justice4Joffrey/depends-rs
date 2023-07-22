@@ -7,12 +7,10 @@ use std::{
 };
 
 use depends::{
-    core::{
-        error::EarlyExit, Clean, DerivedNode, InputNode, Resolve, TargetMut, UpdateDerived,
-        UpdateInput,
-    },
     derives::{Dependencies, Operation, Value},
+    error::EarlyExit,
     graphviz::GraphvizVisitor,
+    Clean, DerivedNode, InputNode, Resolve, TargetMut, UpdateDerived, UpdateInput,
 };
 
 /// A sequence of numbers.

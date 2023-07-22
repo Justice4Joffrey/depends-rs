@@ -1,4 +1,4 @@
-error: Dependencies must have at least 2 fields. Use `depends::core::Dependency` for a single dependency.
+error: Dependencies must have at least 2 fields. Use `depends::Dependency` for a single dependency.
  --> tests/fail/derive/dependencies/fewer_than_2_fields.rs:3:10
   |
 3 | #[derive(Dependencies)]
@@ -6,7 +6,7 @@ error: Dependencies must have at least 2 fields. Use `depends::core::Dependency`
   |
   = note: this error originates in the derive macro `Dependencies` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: Dependencies must have at least 2 fields. Use `depends::core::Dependency` for a single dependency.
+error: Dependencies must have at least 2 fields. Use `depends::Dependency` for a single dependency.
  --> tests/fail/derive/dependencies/fewer_than_2_fields.rs:8:10
   |
 8 | #[derive(Dependencies)]

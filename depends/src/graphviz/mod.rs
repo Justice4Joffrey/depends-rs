@@ -3,7 +3,7 @@ use std::{
     hash::BuildHasher,
 };
 
-use crate::core::{Identifiable, Visitor};
+use crate::{Identifiable, Visitor};
 
 #[derive(Debug)]
 struct Node {
@@ -26,11 +26,9 @@ impl Node {
 /// # use std::{collections::HashSet, hash::Hash, rc::Rc};
 /// #
 /// # use depends::{
-/// #     core::{
-/// #         Dependency, HashValue, Resolve, UpdateDerived, UpdateInput,
-/// #         NodeHash, InputNode, DerivedNode, TargetMut, SingleRef,
-/// #         error::{EarlyExit, ResolveResult}
-/// #     },
+/// #     Dependency, HashValue, Resolve, UpdateDerived, UpdateInput,
+/// #     NodeHash, InputNode, DerivedNode, TargetMut, SingleRef,
+/// #     error::{EarlyExit, ResolveResult},
 /// #     derives::{Dependencies, Value, Operation},
 /// # };
 /// #

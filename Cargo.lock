@@ -334,24 +334,24 @@ dependencies = [
 name = "depends"
 version = "0.8.0"
 dependencies = [
- "depends_core",
+ "ahash",
  "depends_derives",
+ "hashbrown 0.14.0",
+ "serial_test",
+ "thiserror",
 ]
 
 [[package]]
 name = "depends_core"
 version = "0.8.0"
 dependencies = [
- "ahash",
  "colored-diff",
- "hashbrown 0.14.0",
  "insta",
  "log",
  "petgraph",
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "serial_test",
  "syn 2.0.26",
  "thiserror",
 ]
