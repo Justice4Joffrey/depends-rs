@@ -6,11 +6,12 @@ edition = "2021"
 
 [dependencies]
 examples = { path = "../examples" }
-depends = { path = "../depends" }
+depends = { path = "../depends", features = ["hashbrown"] }
 
 envconfig = "0.10.0"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 csv = "1.2.2"
+hashbrown = "0.14.0"
 regex = "1.9.1"
 serde = "1.0.171"
 

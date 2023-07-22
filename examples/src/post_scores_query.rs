@@ -1,13 +1,11 @@
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
-};
+use std::{cmp::Reverse, collections::BinaryHeap};
 
 use chrono::{DateTime, Utc};
 use depends::{
     core::{error::EarlyExit, TargetMut, UpdateDerived},
     derives::{Dependencies, Operation, Value},
 };
+use hashbrown::HashMap;
 
 use crate::{Comments, CommentsToPosts, Likes, Posts};
 

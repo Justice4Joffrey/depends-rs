@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
 use depends::{
     core::{error::EarlyExit, SingleRef, TargetMut, UpdateDerived},
     derives::{Operation, Value},
 };
+use hashbrown::HashMap;
 
 use crate::Comments;
 

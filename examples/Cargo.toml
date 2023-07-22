@@ -5,10 +5,11 @@ edition = "2021"
 publish = false
 
 [dependencies]
-depends = { path = "../depends", features = ["graphviz"] }
+depends = { path = "../depends", features = ["graphviz", "hashbrown"] }
 
 chrono = "0.4.26"
 csv = "1.2.2"
+hashbrown = "0.14.0"
 serde = { version = "1.0.171", features = ["derive"] }
 
 [[example]]
