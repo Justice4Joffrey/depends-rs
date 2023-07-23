@@ -32,6 +32,13 @@ pub trait Visitor {
     {
     }
 
+    /// For diagnostics, notify that a node has been recalculated.
+    fn notify_recalculated<N>(&mut self, _node: &N)
+    where
+        N: Identifiable,
+    {
+    }
+
     /// Touch a dependency group type. Useful for building graph visualisations.
     fn touch_dependency_group(&mut self, _dep: &'static str) {}
 
@@ -61,5 +68,46 @@ impl Visitor for HashSetVisitor {
 
     fn hasher(&self) -> Self::Hasher {
         HashSetVisitor::hasher(self).build_hasher()
+    }
+}
+
+/// A visitor which tracks the resolution state of each node it visits. This
+/// is useful for debugging unexpected caching behaviour.
+#[derive(Debug, Clone, Default)]
+pub struct DiagnosticVisitor {
+    pub visitor: HashSetVisitor,
+    pub recalculated: HashSet<usize>,
+}
+
+impl Visitor for DiagnosticVisitor {
+    type Hasher = DefaultHasher;
+
+    fn visit<N>(&mut self, node: &N) -> bool
+    where
+        N: Identifiable,
+    {
+        self.visitor.visit(node)
+    }
+
+    fn clear(&mut self) {
+        self.visitor.clear();
+        self.recalculated.clear();
+    }
+
+    fn hasher(&self) -> Self::Hasher {
+        <HashSetVisitor as Visitor>::hasher(&self.visitor)
+    }
+
+    fn notify_recalculated<N>(&mut self, node: &N)
+    where
+        N: Identifiable,
+    {
+        self.recalculated.insert(node.id());
+    }
+}
+
+impl DiagnosticVisitor {
+    pub fn new() -> Self {
+        Self::default()
     }
 }

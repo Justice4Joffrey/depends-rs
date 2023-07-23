@@ -32,7 +32,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        execution::{identifiable::reset_node_id, test_utils::TestData},
+        execution::{identifiable::reset_node_id, internal_test_utils::TestData},
         InputNode,
     };
 
@@ -53,5 +53,6 @@ mod tests {
         assert_eq!(visitor.len(), 0);
         let hasher = visitor.hasher();
         hasher.hash_one(654);
+        // TODO: must be unique.
     }
 }

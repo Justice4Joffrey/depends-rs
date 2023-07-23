@@ -69,7 +69,8 @@ mod tests {
 
     use super::*;
     use crate::execution::{
-        identifiable::reset_node_id, test_utils::TestData, HashSetVisitor, InputNode, IsDirty,
+        identifiable::reset_node_id, internal_test_utils::TestData, HashSetVisitor, InputNode,
+        IsDirty,
     };
 
     #[test]

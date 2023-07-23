@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
-use depends::{derives::Value, Clean, InputNode, UpdateInput};
+use depends::{derives::Value, Clean, UpdateInput};
+use serial_test::serial;
 
+// ANCHOR: custom_clean
 struct Post {
     id: i64,
     // ... your fields go here
@@ -35,7 +37,9 @@ impl Posts {
         self.changed_post_ids.iter().map(|key| &self.all_posts[key])
     }
 }
+// ANCHOR_END: custom_clean
 
+// ANCHOR: update_input
 impl UpdateInput for Posts {
     // The type of data this node receives from _outside_ the graph.
     type Update = Post;
@@ -51,14 +55,18 @@ impl UpdateInput for Posts {
         self.generation += 1;
     }
 }
+// ANCHOR_END: update_input
 
+#[serial]
 #[test]
 #[rustfmt::skip]
 fn create_input_node() {
+use depends::InputNode;
+// ANCHOR: init_input_node
 // We can now create an `InputNode` from our `Posts` struct.
 let posts = InputNode::new(Posts::default());
 
-// posts is an `Rc`, so after cloning it in to a graph, we can still
+// `posts` is an `Rc`, so after cloning it in to a graph, we can still
 // get shared access to it.
 posts.update(Post { id: 42 }).unwrap();
 
@@ -67,4 +75,13 @@ let changed: Vec<_> = data.iter_changed().collect();
 
 assert_eq!(changed.len(), 1);
 assert_eq!(changed[0].id, 42);
+// ANCHOR_END: init_input_node
+}
+
+// Stop clippy caring about the unused function without using `allow` in
+// situ.
+#[allow(unused)]
+fn iter_changed() {
+    let posts = Posts::default();
+    let _ = posts.iter_changed().collect::<Vec<_>>();
 }

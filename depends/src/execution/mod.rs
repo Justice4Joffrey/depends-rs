@@ -34,5 +34,8 @@ mod graph_create;
 #[cfg(feature = "graphviz")]
 pub use graph_create::GraphCreate;
 
+#[cfg(feature = "test-utils")]
+pub mod test_utils;
+
 #[cfg(test)]
-mod test_utils;
+mod internal_test_utils;

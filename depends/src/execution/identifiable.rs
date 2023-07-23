@@ -19,6 +19,19 @@ pub fn reset_node_id() {
     NODE_ID.store(0, Ordering::Relaxed);
 }
 
+/// Put this behind unsafe so that tests outside of this crate can reset the
+/// node id.
+///
+/// This is unsafe to call because it will affect the node count to other
+/// co-existing graphs. Make sure you're running this test in `serial`.
+///
+/// # Safety
+///
+/// Only for use in testing.
+pub unsafe fn ext_reset_node_id() {
+    NODE_ID.store(0, Ordering::Relaxed);
+}
+
 /// A unique integer value assigned to each node created in a particular
 /// runtime, allowing a [Visitor](super::Visitor) to track visited nodes when
 /// resolving graphs.
@@ -40,7 +53,7 @@ mod tests {
     use serial_test::serial;
 
     use super::*;
-    use crate::execution::{test_utils::TestData, InputNode};
+    use crate::execution::{internal_test_utils::TestData, InputNode};
 
     #[test]
     #[serial]
