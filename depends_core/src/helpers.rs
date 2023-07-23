@@ -4,12 +4,9 @@ use std::{
 };
 
 pub fn format_source(source: &str) -> String {
-    let mut rustfmt = Command::new("rustfmt");
-    let rustfmt = rustfmt
-        .args(["--edition", "2021"])
-        .env("RUSTUP_TOOLCHAIN", "nightly");
-
-    let mut rustfmt = rustfmt
+    let mut rustup = Command::new("rustup");
+    let mut rustfmt = rustup
+        .args(["run", "nightly", "rustfmt", "--edition", "2021"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
