@@ -56,7 +56,7 @@ use crate::execution::{
 /// #         TwoStringsRef { first, second }: Self::Input<'_>,
 /// #         mut target: Self::Target<'_>,
 /// #     ) -> Result<(), EarlyExit> {
-/// #         **target = format!("{} {}", first.data(), second.data());
+/// #         **target = format!("{} {}", first.value(), second.value());
 /// #         Ok(())
 /// #     }
 /// # }
@@ -80,7 +80,7 @@ use crate::execution::{
 ///
 /// // Resolve the node.
 /// assert_eq!(
-///     node.resolve_root(&mut visitor).unwrap().data(),
+///     node.resolve_root(&mut visitor).unwrap().value(),
 ///     "Hello, ???"
 /// );
 ///
@@ -89,7 +89,7 @@ use crate::execution::{
 ///
 /// // The node will detect the input has changed and recompute its value.
 /// assert_eq!(
-///     node.resolve_root(&mut visitor).unwrap().data(),
+///     node.resolve_root(&mut visitor).unwrap().value(),
 ///     "Hello, world!"
 /// );
 ///
@@ -103,7 +103,7 @@ use crate::execution::{
 /// );
 ///
 /// assert_eq!(
-///     another_node.resolve_root(&mut visitor).unwrap().data(),
+///     another_node.resolve_root(&mut visitor).unwrap().value(),
 ///     "Hello, world! See ya."
 /// );
 /// ```

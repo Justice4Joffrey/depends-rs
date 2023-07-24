@@ -80,7 +80,7 @@ mod tests {
         let node = InputNode::new(TestData::new(57));
         let dependency = Dependency::new(Rc::clone(&node));
         assert_eq!(
-            "Dependency { last_state: RefCell { value: None }, dependency: InputNode { resolve_state: RefCell { value: Updating }, data: RefCell { value: NodeState { node_hash: NotHashed, data: TestData { inner: 57, recent: [] } } }, id: 0 } }",
+            "Dependency { last_state: RefCell { value: None }, dependency: InputNode { resolve_state: RefCell { value: Updating }, data: RefCell { value: NodeState { node_hash: NotHashed, value: TestData { inner: 57, recent: [] } } }, id: 0 } }",
             format!("{:?}", dependency)
         );
         let mut visitor = HashSetVisitor::new();

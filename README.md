@@ -20,37 +20,46 @@ Many applications which respond to changes from multiple input sources benefit f
 Depends aims to present the smallest possible API surface for building minimal runtime-overhead dependency graphs in Rust, whilst leveraging the compile-time guarantees of the type-system.
 
 ```rust
-/// A unit of data within a graph.
-#[derive(Value, Hash)]
-pub struct NumberValue {
-    pub value: i32,
-}
-
-// Below are input nodes, which update their internal values from
+// Below are input nodes, which are nodes which take new values from
 // outside the graph.
-let a = InputNode::new(NumberValue::new(7));
-let b = InputNode::new(NumberValue::new(6));
+// It's not common to use primitives, but they make for a simple example.
+let a = InputNode::new(7_i64);
+let b = InputNode::new(6_i32);
 
-// Derived nodes take their value from other nodes.
+// Derived nodes take their value from other nodes (either input or
+// derived). Note that we can combine _any_ type of node, providing
+// they're compatible with the dependencies (`TwoNumbers`) and operation
+// (`Multiply`).
 let c = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
-    Multiply,
-    NumberValue::default(),
+TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
+Multiply,
+0_i64,
 );
 
 // A visitor tracks which nodes have been visited during a resolve.
 let mut visitor = HashSetVisitor::new();
 
-// Resolve the graph on-demand to propagate changes and produce a result.
-let output = c.resolve_root(&mut visitor).unwrap();
-assert_eq!(output.value, 42);
+// Resolve the graph!
+// `resolve_root` will clear the visitor before returning, readying it
+// for the next resolution.
+// This can fail if there are cycles in the graph or an existing read
+// reference is being held.
+assert_eq!(
+  c.resolve_root(&mut visitor).unwrap().value().clone(),
+  42
+);
 
-// Update the value of `a` and resolve again.
+// Nodes which have an edge to dependencies which are updated between
+// resolves will recalculate their state on-demand. Others will return
+// a cached value. This is known as incremental computation, and can
+// vastly improve performance of complex calculations.
 a.update(70).unwrap();
 
-// Only values which depend on `a` will be updated when the graph is next resolved.
-let output = c.resolve_root(&mut visitor).unwrap();
-assert_eq!(output.value, 420);
+// Any dependent values will be updated next time the graph is resolved.
+assert_eq!(
+  c.resolve_root(&mut visitor).unwrap().value().clone(),
+  420
+);
 ```
 
 For more detailed examples, including (de)serialization with [Graphviz](https://graphviz.org/), see the [Getting Started Guide](https://justice4joffrey.github.io/depends-rs).

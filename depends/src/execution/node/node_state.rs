@@ -13,14 +13,14 @@ pub struct NodeState<T> {
     /// A value representing the unique state of the value (i.e. the Hash).
     node_hash: NodeHash,
     /// The value being wrapped.
-    data: T,
+    value: T,
 }
 
 impl<T: HashValue> NodeState<T> {
-    pub fn new(data: T) -> Self {
+    pub fn new(value: T) -> Self {
         Self {
             node_hash: NodeHash::default(),
-            data,
+            value,
         }
     }
 
@@ -34,11 +34,15 @@ impl<T: HashValue> NodeState<T> {
 
     /// Update the stored hash value of the value.
     pub fn update_node_hash(&mut self, hasher: &mut impl Hasher) {
-        self.node_hash = self.data.hash_value(hasher)
+        self.node_hash = self.value.hash_value(hasher)
     }
 
-    pub fn data(&self) -> &T {
-        &self.data
+    pub fn value(&self) -> &T {
+        &self.value
+    }
+
+    pub fn value_mut(&mut self) -> &mut T {
+        &mut self.value
     }
 }
 
@@ -56,7 +60,7 @@ impl<T: Named> Named for NodeState<T> {
 
 impl<T: Clean> Clean for NodeState<T> {
     fn clean(&mut self) {
-        self.data.clean()
+        self.value.clean()
     }
 }
 
@@ -64,13 +68,13 @@ impl<T> Deref for NodeState<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &self.data
+        &self.value
     }
 }
 
 impl<T> DerefMut for NodeState<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.data
+        &mut self.value
     }
 }
 
@@ -82,7 +86,7 @@ mod tests {
     fn test_node_state() {
         let mut state = NodeState::new(123_i32);
         assert_eq!(
-            "NodeState { node_hash: NotHashed, data: 123 }",
+            "NodeState { node_hash: NotHashed, value: 123 }",
             format!("{:?}", state)
         );
         assert_eq!(<NodeState<i32> as Named>::name(), "i32");
@@ -94,6 +98,8 @@ mod tests {
             &mut NodeHash::Hashed(14370432302296844161)
         );
         state.clean();
-        assert_eq!(state.data(), &123);
+        assert_eq!(state.value(), &123);
+        *state.value_mut() = 456;
+        assert_eq!(state.value(), &456);
     }
 }
