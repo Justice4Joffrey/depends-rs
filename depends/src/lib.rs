@@ -3,15 +3,24 @@
 //! A library for ergonomic, performant, incremental computation between
 //! arbitrary types.
 //!
-//! ## Why would I want that?
+//! For more information, see:
+//! - [Getting Started Guide](https://justice4joffrey.github.io/depends-rs)
+//! - [Examples](https://github.com/Justice4Joffrey/depends-rs/tree/master/examples)
+//! - [Benchmarks](https://github.com/Justice4Joffrey/depends-rs/tree/master/benches)
 //!
-//! Most applications rely on some core logic which must respond to external
-//! events. Often, the logic to transform each event in to an action is
-//! straightforward, but as the application scales, many hard to reason-with
-//! situations emerge from the combinatorial explosion of states.
+//! ## Motivation
 //!
-//! Dependency graphs are an excellent code architectural pattern to tame
-//! complexity in such scenarios.
+//! Many applications which respond to changes from multiple input sources
+//! benefit from the use of dependency graphs as code structure. By breaking
+//! complex states down in to small pieces of testable, composable logic,
+//! scaling and maintaining applications becomes much easier over time.
+//! Additionally, incremental computation allows results of previous
+//! calculations to be reused where possible, improving overall efficiency
+//! and performance.
+//!
+//! Depends aims to present the smallest possible API surface for building
+//! minimal runtime-overhead dependency graphs in Rust, whilst leveraging
+//! the compile-time guarantees of the type-system.
 //!
 //! ```
 //! # use std::cell::{RefMut};
@@ -122,13 +131,6 @@
 //! assert_eq!(res.value, 420);
 //! # }
 //! ```
-//!
-//! Clearly, to implement a simple multiplication problem, a dependency graph
-//! is overkill. However, for more complex problems, where many inputs can
-//! change and the output is a combination of many transformations on that
-//! input (and derivations of it), `depends` can help you produce scalable,
-//! performant, testable code out of the box.
-
 #![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
 
 mod execution;

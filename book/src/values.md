@@ -1,6 +1,6 @@
-## Values
+# Values
 
-A `Value` is a stateful unit of data held within a dependency graph node. During execution, values will be prompted to recalculate their state if their dependencies change _their_ values.
+A [Value](https://docs.rs/depends/latest/depends/derives/derive.Value.html) is a stateful unit of data held within a dependency graph node. During execution, values will be prompted to recalculate their state if their dependencies change _their_ values.
 
 A `Value` is required to declare how it can be:
 

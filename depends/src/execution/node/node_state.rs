@@ -6,13 +6,13 @@ use std::{
 use super::NodeHash;
 use crate::execution::{Clean, HashValue, Named};
 
-/// A wrapper for some data `T`, tracking some context around the data's
+/// A wrapper for some value `T`, tracking some context around the value's
 /// computation state.
 #[derive(Debug)]
 pub struct NodeState<T> {
-    /// A value representing the unique state of the data (i.e. the Hash).
+    /// A value representing the unique state of the value (i.e. the Hash).
     node_hash: NodeHash,
-    /// The data being wrapped.
+    /// The value being wrapped.
     data: T,
 }
 
@@ -32,9 +32,13 @@ impl<T: HashValue> NodeState<T> {
         &mut self.node_hash
     }
 
-    /// Update the stored hash value of the data.
+    /// Update the stored hash value of the value.
     pub fn update_node_hash(&mut self, hasher: &mut impl Hasher) {
         self.node_hash = self.data.hash_value(hasher)
+    }
+
+    pub fn data(&self) -> &T {
+        &self.data
     }
 }
 
@@ -90,5 +94,6 @@ mod tests {
             &mut NodeHash::Hashed(14370432302296844161)
         );
         state.clean();
+        assert_eq!(state.data(), &123);
     }
 }

@@ -107,6 +107,7 @@ impl Visitor for DiagnosticVisitor {
 }
 
 impl DiagnosticVisitor {
+    #[allow(unused)]
     pub fn new() -> Self {
         Self::default()
     }

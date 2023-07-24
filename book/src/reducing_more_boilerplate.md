@@ -10,7 +10,7 @@ Writing code to manually construct a dependency graph, connecting nodes to their
 
 ## Graphviz Deserialization
 
-To simplify this process, there's the [Graph](https://docs.rs/depends/0.9.0/depends/derives/derive.Graph.html) derive
+To simplify this process, there's the [Graph](https://docs.rs/depends/latest/depends/derives/derive.Graph.html) derive
 macro. This takes a Graphviz definition of the graph, and generates the code to construct it.
 
 ```rust

@@ -9,8 +9,53 @@ use crate::execution::{
     NodeRef, NodeState, Resolve, UpdateInput, Visitor,
 };
 
-/// A node which can take its values from outside of the graph via
+/// # Input Node
+///
+/// Input Nodes are the leaves of the graph. They wrap a value of some type
+/// `T` and provide a public interface to mutate it.
+///
+/// ## UpdateInput
+///
+/// To construct an input node, the value must implement the [UpdateInput]
+/// trait. This specifies the type of the update and how it affects the
+/// wrapped value.
+///
+/// ## Updating values
+///
+/// `InputNode` uses interior mutability to allow the wrapped value to be
+/// updated with a shared reference.
+///
+/// To update the value, use [update](Self::update).
+/// A node which can update values from outside of the graph via
 /// [update](Self::update).
+///
+/// ```rust
+/// # use depends::{InputNode, UpdateInput};
+/// # use depends::derives::Value;
+/// #[derive(Value, Hash)]
+/// struct MyType {
+///     inner: String,
+/// }
+///
+/// impl UpdateInput for MyType {
+///     type Update = String;
+///
+///     fn update_mut(&mut self, update: Self::Update) {
+///         self.inner.extend(update.chars());
+///     }
+/// }
+///
+/// // Create an input node.
+/// let input = InputNode::new(MyType {
+///     inner: "Hello, ".to_string(),
+/// });
+///
+/// // Update the internal value. This will fail if the node is currently
+/// // being written to.
+/// input.update("world!".to_string()).unwrap();
+///
+/// assert_eq!(input.data().unwrap().inner, "Hello, world!");
+/// ```
 #[derive(Debug)]
 pub struct InputNode<T> {
     /// The resolve state of this node. This is used to ensure that a
@@ -50,7 +95,8 @@ where
         })
     }
 
-    /// The public interface to provide data to mutate the inner leaf.
+    /// The public interface to provide data to mutate the inner value via
+    /// a shared reference.
     pub fn update(&self, input: T::Update) -> ResolveResult<()> {
         let mut node_state = self.data.try_borrow_mut()?;
         let mut resolve_state = self.resolve_state.try_borrow_mut()?;

@@ -1,4 +1,6 @@
 //! Derive node requirements for primitive types.
+//!
+//! Primitives all implement `UpdateInput` with a simple replace.
 
 macro_rules! impl_for_primitive {
     ($($ty:ty),*) => {
@@ -21,6 +23,14 @@ macro_rules! impl_for_primitive {
 
             impl crate::execution::Clean for $ty {
                 fn clean(&mut self) {}
+            }
+
+            impl crate::execution::UpdateInput for $ty {
+                type Update = Self;
+
+                fn update_mut(&mut self, update: Self::Update) {
+                    *self = update;
+                }
             }
         )*
     };

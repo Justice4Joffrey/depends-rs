@@ -8,16 +8,16 @@
 A library for ergonomic, performant, incremental computation between arbitrary types.
 
 For more information, see:
-- [Getting Started Guide]()
+- [Getting Started Guide](https://justice4joffrey.github.io/depends-rs)
 - [API Documentation](https://docs.rs/depends/)
-- [Examples](https://github.com/Justice4Joffrey/depends-rs/tree/master/examples).
-- [Benchmarks](https://github.com/Justice4Joffrey/depends-rs/tree/master/benches).
+- [Examples](https://github.com/Justice4Joffrey/depends-rs/tree/master/examples)
+- [Benchmarks](https://github.com/Justice4Joffrey/depends-rs/tree/master/benches)
 
 ## Motivation
 
 Many applications which respond to changes from multiple input sources benefit from the use of dependency graphs as code structure. By breaking complex states down in to small pieces of testable, composable logic, scaling and maintaining applications becomes much easier over time. Additionally, incremental computation allows results of previous calculations to be reused where possible, improving overall efficiency and performance.
 
-Depends aims to present the smallest possible API surface for building minimal runtime overhead dependency graphs in Rust, whilst leveraging the compile-time guarantees of the type-system.
+Depends aims to present the smallest possible API surface for building minimal runtime-overhead dependency graphs in Rust, whilst leveraging the compile-time guarantees of the type-system.
 
 ```rust
 /// A unit of data within a graph.
@@ -53,7 +53,7 @@ let output = c.resolve_root(&mut visitor).unwrap();
 assert_eq!(output.value, 420);
 ```
 
-For more detailed examples, including (de)serialization with [Graphviz](https://graphviz.org/), see the [Getting Started Guide]().
+For more detailed examples, including (de)serialization with [Graphviz](https://graphviz.org/), see the [Getting Started Guide](https://justice4joffrey.github.io/depends-rs).
 
 ## Current Status
 
