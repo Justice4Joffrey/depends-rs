@@ -28,6 +28,7 @@ pub fn reset_node_id() {
 /// # Safety
 ///
 /// Only for use in testing.
+#[allow(unused)]
 pub unsafe fn ext_reset_node_id() {
     NODE_ID.store(0, Ordering::Relaxed);
 }

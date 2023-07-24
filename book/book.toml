@@ -8,3 +8,5 @@ title = "Incremental Computation with Depends"
 runnable = false
 
 [output.linkcheck]
+follow-web-links = true
+warning-policy = "error"

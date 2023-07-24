@@ -11,14 +11,107 @@ use crate::execution::{
     Resolve, UpdateDerived, Visitor,
 };
 
-/// A node which has a value derived from other nodes. This node will keep
-/// track of the state of any dependencies it has, and recompute its value if
-/// any of its dependencies appear to have changed.
+/// # Derived Node
+///
+/// A node which manages a value which depends on other nodes. This node will
+/// keep track of the hash value of any dependencies it has and recompute
+/// the internal value if any of its dependencies appear to have changed.
+///
+/// ## Dependencies
+///
+/// A derived node must specify its dependencies. This can be a single node,
+/// wrapped in a [Dependency](crate::Dependency), or a struct with multiple
+/// node types which has derived [Dependencies](crate::derives::Dependencies).
+///
+/// ## Operation
+///
+/// Along with the dependencies, a derived node must specify a function type
+/// which outlines how to transform the target (wrapped value), given the
+/// state of the dependencies.
+///
+/// For more, see the [Operation](crate::derives::Operation) macro.
+///
+/// ## Resolving nodes
+///
+/// Nodes can be [Resolved](Resolve) to compute and return a reference to the
+/// internal value. To do so, the node must be passed a [Visitor] which will
+/// be used to traverse the graph and compute the value.
+///
+/// > Be sure to use the same visitor between calls to `resolve`, as the
+/// > visitor is responsible for determining node hashes, and this will
+/// > not be consistent between different visitor instances.
+///
+/// ```
+/// # use std::rc::Rc;
+/// # use depends::{DerivedNode, HashSetVisitor, InputNode, Resolve, TargetMut, UpdateDerived};
+/// # use depends::derives::Operation;
+/// # use depends::error::EarlyExit;
+/// # use depends_derives::Dependencies;
+/// # #[derive(Operation)]
+/// # struct Concat;
+/// # impl UpdateDerived for Concat {
+/// #     type Input<'a> = TwoStringsRef<'a> where Self: 'a;
+/// #     type Target<'a> = TargetMut<'a, String> where Self: 'a;
+/// #     fn update_derived(
+/// #         TwoStringsRef { first, second }: Self::Input<'_>,
+/// #         mut target: Self::Target<'_>,
+/// #     ) -> Result<(), EarlyExit> {
+/// #         **target = format!("{} {}", first.data(), second.data());
+/// #         Ok(())
+/// #     }
+/// # }
+/// # #[derive(Dependencies)]
+/// # struct TwoStrings {
+/// #     first: String,
+/// #     second: String,
+/// # }
+/// // Create some input nodes.
+/// let input_1 = InputNode::new("Hello,".to_string());
+/// let input_2 = InputNode::new("???".to_string());
+///
+/// // Create a derived node.
+/// let node = DerivedNode::new(
+///     TwoStrings::init(Rc::clone(&input_1), Rc::clone(&input_2)),
+///     Concat,
+///     String::new()
+/// );
+///
+/// let mut visitor = HashSetVisitor::new();
+///
+/// // Resolve the node.
+/// assert_eq!(
+///     node.resolve_root(&mut visitor).unwrap().data(),
+///     "Hello, ???"
+/// );
+///
+/// // Update the input nodes.
+/// input_2.update("world!".to_string()).unwrap();
+///
+/// // The node will detect the input has changed and recompute its value.
+/// assert_eq!(
+///     node.resolve_root(&mut visitor).unwrap().data(),
+///     "Hello, world!"
+/// );
+///
+/// // Any nodes which `resolve` to the dependency types can be combined.
+/// let input_3 = InputNode::new("See ya.".to_string());
+///
+/// let another_node = DerivedNode::new(
+///     TwoStrings::init(Rc::clone(&node), Rc::clone(&input_3)),
+///     Concat,
+///     String::new()
+/// );
+///
+/// assert_eq!(
+///     another_node.resolve_root(&mut visitor).unwrap().data(),
+///     "Hello, world! See ya."
+/// );
+/// ```
 pub struct DerivedNode<D, F, T> {
     /// The dependencies of this node. This can be a single node, or a
     /// struct containing multiple nodes.
     dependencies: D,
-    /// The value of this node.
+    /// The wrapped value of this node.
     data: RefCell<NodeState<T>>,
     /// The unique runtime Id of this node.
     id: usize,
