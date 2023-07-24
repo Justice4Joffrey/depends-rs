@@ -31,9 +31,9 @@ let b = InputNode::new(6_i32);
 // they're compatible with the dependencies (`TwoNumbers`) and operation
 // (`Multiply`).
 let c = DerivedNode::new(
-TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
-Multiply,
-0_i64,
+    TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
+    Multiply,
+    0_i64,
 );
 
 // A visitor tracks which nodes have been visited during a resolve.
@@ -45,8 +45,8 @@ let mut visitor = HashSetVisitor::new();
 // This can fail if there are cycles in the graph or an existing read
 // reference is being held.
 assert_eq!(
-  c.resolve_root(&mut visitor).unwrap().value().clone(),
-  42
+    c.resolve_root(&mut visitor).unwrap().value().clone(),
+    42
 );
 
 // Nodes which have an edge to dependencies which are updated between
@@ -57,8 +57,8 @@ a.update(70).unwrap();
 
 // Any dependent values will be updated next time the graph is resolved.
 assert_eq!(
-  c.resolve_root(&mut visitor).unwrap().value().clone(),
-  420
+    c.resolve_root(&mut visitor).unwrap().value().clone(),
+    420
 );
 ```
 
