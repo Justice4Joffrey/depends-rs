@@ -34,13 +34,11 @@ impl UpdateDerived for CheckBankBalance {
             // Time's always changing, we don't need to check it.
             return Ok(());
         }
-        let time = ***time;
-        let money = ***money;
         // It's been a while since we've bought anything and we've just been
         // paid.
-        if time - target.last_purchase_time > 24 * 60 * 60 {
-            target.last_purchase_time = time;
-            target.amount = money / 10;
+        if time.value() - target.value().last_purchase_time > 24 * 60 * 60 {
+            target.value_mut().last_purchase_time = *time.value();
+            target.value_mut().amount = money.value() / 10;
         }
         Ok(())
     }
