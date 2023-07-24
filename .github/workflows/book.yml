@@ -43,11 +43,13 @@ jobs:
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./book/book/html
+          destination: ./_site
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: book
+          path: ./_site
 
   deploy:
     environment:
