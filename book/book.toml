@@ -1,0 +1,10 @@
+[book]
+language = "en"
+multilingual = false
+src = "src"
+title = "Incremental Computation with Depends"
+
+[output.html.playground]
+runnable = false
+
+[output.linkcheck]

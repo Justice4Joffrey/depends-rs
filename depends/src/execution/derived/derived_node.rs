@@ -81,6 +81,7 @@ where
                 //  whereas a shared reference does not.
                 let mut node_state = self.data.try_borrow_mut()?;
                 node_state.update_node_hash(&mut visitor.hasher());
+                visitor.notify_recalculated(self);
             }
         }
         visitor.leave(self);

@@ -442,6 +442,7 @@ dependencies = [
  "depends",
  "hashbrown 0.14.0",
  "serde",
+ "serial_test",
 ]
 
 [[package]]

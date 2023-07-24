@@ -23,7 +23,7 @@ fn derive_operation_inner(input: TokenStream) -> syn::Result<TokenStream> {
     })
 }
 
-#[cfg(all(test, not(miri), not(target_os = "windows")))]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use insta::assert_snapshot;
     use syn::parse_quote;

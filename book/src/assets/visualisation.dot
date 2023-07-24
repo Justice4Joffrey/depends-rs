@@ -1,0 +1,90 @@
+digraph G {
+    compound  = true
+graph [
+    margin    = 0.1
+    penwidth  = 0
+    nodesep   = 0.0
+    ranksep   = 0.02
+    bgcolor   = "transparent"
+    fontname  = "helvetica"
+    fontcolor = "#222222"
+    fontsize  = 10
+    rankdir   = TB
+]
+
+    node [
+    fontcolor = "#111111"
+    fontname  = "helvetica"
+    fillcolor = "#eeeeee"
+    fontsize  = 10
+    shape     = "rect"
+    style     = "rounded,filled"
+    width     = 0.3
+    height    = 0.1
+    margin    = "0.08,0.08"
+]
+
+    edge [
+    arrowsize = 0.7
+    color     = "#333333"
+    fontcolor = "#222222"
+]
+
+
+
+    subgraph cluster_inputs {
+    margin = 10
+    color = "#dddddd"
+    margin = 10
+    label = "These nodes receive data from\noutside the graph"
+    style = "filled,rounded"
+i0 [
+    label = "Input"
+]
+i1 [
+    label = "Input"
+]
+i2 [
+    label = "Input"
+]
+i3 [
+    label = "Input"
+]
+}
+subgraph cluster_derived {
+    color = "#dddddd"
+    margin = 10
+    label = "These nodes derive their values\nfrom other nodes"
+    labelloc = "b"
+    style = "filled,rounded"
+d0 [
+    label = "Derived"
+
+]
+d1 [
+    label = "Derived"
+
+]
+d2 [
+    label = "Derived"
+]
+d3 [
+    label = "Derived"
+]
+root [
+    label = "Root"
+]
+}
+
+
+i1 -> d2 [id = "i1d2", minlen = 3  ]
+i2 -> d0 [id = "i2d0", minlen = 3  ]
+i3 -> d1 [id = "i3d1", minlen = 3  ]
+d0 -> root [id = "d0r", minlen = 3  ]
+d1 -> root [id = "d1r", minlen = 3  ]
+d2 -> root [id = "d2r", minlen = 3  ]
+d3 -> root [id = "d3r", minlen = 3  ]
+d1 -> d3 [id = "d1d3", minlen = 3  ]
+i3 -> root [id = "i3r", minlen = 3  ]
+i0 -> root [id = "i0r", minlen = 3  ]
+}

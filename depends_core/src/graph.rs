@@ -192,7 +192,7 @@ fn derived_node_create(derived: &DerivedNodeDef) -> (TokenStream, Ident, Ident) 
     )
 }
 
-#[cfg(all(test, not(miri), not(target_os = "windows")))]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use insta::assert_snapshot;
     use syn::parse_quote;

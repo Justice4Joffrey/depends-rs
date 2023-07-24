@@ -9,8 +9,8 @@ use crate::execution::{
     NodeRef, NodeState, Resolve, UpdateInput, Visitor,
 };
 
-/// A node which has no dependencies. Leaf nodes receive their state from
-/// _outside_ of the graph structure from calls to [update](Self::update).
+/// A node which can take its values from outside of the graph via
+/// [update](Self::update).
 #[derive(Debug)]
 pub struct InputNode<T> {
     /// The resolve state of this node. This is used to ensure that a
