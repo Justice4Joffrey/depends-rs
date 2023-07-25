@@ -57,7 +57,16 @@ fn test_test_data() {
         data.hash_value(&mut hasher),
         NodeHash::Hashed(15387811073369036852)
     );
-    assert_eq!("TestData { inner: 42, recent: [] }", format!("{:?}", data));
+
+    assert_eq!(
+        r#"
+TestData {
+    inner: 42,
+    recent: [],
+}"#
+        .trim(),
+        format!("{:#?}", data)
+    );
     data.update_mut(420);
     assert_eq!(
         TestData {

@@ -29,8 +29,7 @@ For some graphs, it may be desirable to exit early from an operation. This can b
 This is particularly useful if you want to short-circuit a costly computation when it's clear that the result is no longer relevant.
 
 > Early exit will be triggered by the first value which returns an `Err`, therefore ordering is important.
-> 
+>
 > Be aware that nodes _after_ the node which prompts the exit will not receive data during the execution, and will miss
 > any transient state (that which will be [cleaned](./cleaning.md)) which is cleared up by the time they are next
 > updated.
-

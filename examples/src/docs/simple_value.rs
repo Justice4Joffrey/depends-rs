@@ -58,8 +58,8 @@ let input = InputNode::new(SomeNumber { value: 2 });
 // fail if the node is currently being read/written to.
 input.update(6).unwrap();
 
-// The `data` method allows us to read the value of the node.
-assert_eq!(input.data().unwrap().value, 6);
+// The `value` method allows us to read the value of the node.
+assert_eq!(input.value().unwrap().value, 6);
 // ANCHOR_END: create_simple_input
 }
 

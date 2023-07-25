@@ -19,4 +19,3 @@ We're now able to provide `Posts` to an `InputNode`.
 ```rust
 {{#include ../../examples/src/docs/complex_value.rs:init_input_node}}
 ```
-

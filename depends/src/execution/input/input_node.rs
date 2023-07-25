@@ -54,14 +54,16 @@ use crate::execution::{
 /// // being written to.
 /// input.update("world!".to_string()).unwrap();
 ///
-/// assert_eq!(input.data().unwrap().inner, "Hello, world!");
+/// assert_eq!(input.value().unwrap().inner, "Hello, world!");
 /// ```
 #[derive(Debug)]
 pub struct InputNode<T> {
     /// The resolve state of this node. This is used to ensure that a
     /// node is cleaned only once per resolve.
     resolve_state: RefCell<InputState>,
-    data: RefCell<NodeState<T>>,
+    /// The inner value of this node.
+    value: RefCell<NodeState<T>>,
+    /// Unique runtime identifier.
     id: usize,
 }
 
@@ -82,15 +84,15 @@ where
     T: UpdateInput,
 {
     /// Wrap this leaf in a node.
-    pub fn new(data: T) -> Rc<Self> {
-        Self::new_with_id(data, next_node_id())
+    pub fn new(value: T) -> Rc<Self> {
+        Self::new_with_id(value, next_node_id())
     }
 
     /// Create this node with a specified Id. Useful for tests.
-    pub fn new_with_id(data: T, id: usize) -> Rc<Self> {
+    pub fn new_with_id(value: T, id: usize) -> Rc<Self> {
         Rc::new(Self {
             resolve_state: RefCell::new(InputState::default()),
-            data: RefCell::new(NodeState::new(data)),
+            value: RefCell::new(NodeState::new(value)),
             id,
         })
     }
@@ -98,7 +100,7 @@ where
     /// The public interface to provide data to mutate the inner value via
     /// a shared reference.
     pub fn update(&self, input: T::Update) -> ResolveResult<()> {
-        let mut node_state = self.data.try_borrow_mut()?;
+        let mut node_state = self.value.try_borrow_mut()?;
         let mut resolve_state = self.resolve_state.try_borrow_mut()?;
         // Flush any changes since it was resolved.
         if *resolve_state == InputState::Resolving {
@@ -109,8 +111,9 @@ where
         Ok(())
     }
 
-    pub fn data(&self) -> Result<Ref<'_, NodeState<T>>, BorrowError> {
-        self.data.try_borrow()
+    /// Access the inner value.
+    pub fn value(&self) -> Result<Ref<'_, NodeState<T>>, BorrowError> {
+        self.value.try_borrow()
     }
 }
 
@@ -123,7 +126,7 @@ where
     fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
         visitor.touch(self, None);
         if visitor.visit(self) {
-            let mut node_state = self.data.try_borrow_mut()?;
+            let mut node_state = self.value.try_borrow_mut()?;
             let mut resolve_state = self.resolve_state.try_borrow_mut()?;
             // Ensures `update` changes are only flushed once.
             match *resolve_state {
@@ -138,6 +141,6 @@ where
             node_state.update_node_hash(&mut visitor.hasher());
         }
         visitor.leave(self);
-        Ok(self.data.try_borrow()?)
+        Ok(self.value.try_borrow()?)
     }
 }

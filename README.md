@@ -8,6 +8,7 @@
 A library for ergonomic, performant, incremental computation between arbitrary types.
 
 For more information, see:
+
 - [Getting Started Guide](https://justice4joffrey.github.io/depends-rs)
 - [API Documentation](https://docs.rs/depends/)
 - [Examples](https://github.com/Justice4Joffrey/depends-rs/tree/master/examples)

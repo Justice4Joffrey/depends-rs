@@ -21,6 +21,7 @@ Let's demonstrate incremental computation in action. Suppose now we wanted to up
 ```rust
 {{#include ../../examples/src/docs/raising_the_stakes.rs:incremental_computation_1}}
 ```
+
 So, only 4 derived nodes were recomputed that time, saving us from all those costly math operations! A graphical
 representation of how this looks is below. The red nodes dirty or recomputed. The amber nodes provided cached values to
 their dependents. The green nodes were unchanged.
@@ -42,7 +43,7 @@ dependencies dirty, therefore returning cached values.
 Organizing nodes to effectively cache values of nodes further up the dependency path can lead to significant performance
 gains, particularly in large dependency graphs with costly calculations.
 
-A graphical representation of this is below. 
+A graphical representation of this is below.
 
 <p align="center">
   <img src="./assets/raising_the_stakes_resolution_2.svg" />

@@ -112,7 +112,7 @@ pub struct DerivedNode<D, F, T> {
     /// struct containing multiple nodes.
     dependencies: D,
     /// The wrapped value of this node.
-    data: RefCell<NodeState<T>>,
+    value: RefCell<NodeState<T>>,
     /// The unique runtime Id of this node.
     id: usize,
     /// A type representing the function used to update the value of this
@@ -130,18 +130,18 @@ where
     T: HashValue + Clean + Named,
 {
     /// Construct this node.
-    pub fn new(dependencies: D, update: F, data: T) -> Rc<Self> {
-        Self::new_with_id(dependencies, update, data, next_node_id())
+    pub fn new(dependencies: D, update: F, value: T) -> Rc<Self> {
+        Self::new_with_id(dependencies, update, value, next_node_id())
     }
 
     /// Create this node with a specified Id. Useful for tests.
-    pub fn new_with_id(dependencies: D, _: F, data: T, id: usize) -> Rc<Self> {
+    pub fn new_with_id(dependencies: D, _: F, value: T, id: usize) -> Rc<Self> {
         // TODO: we should store `update` and make the `update_derived` call
         //  take a &self so that values can be provided for update fns.
         Rc::new(Self {
             dependencies,
             phantom: PhantomData::<F>,
-            data: RefCell::new(NodeState::new(data)),
+            value: RefCell::new(NodeState::new(value)),
             id,
         })
     }
@@ -163,7 +163,7 @@ where
         if visitor.visit(self) {
             let input = self.dependencies.resolve_workaround(visitor)?;
             if input.is_dirty() {
-                let mut node_state = self.data.try_borrow_mut()?;
+                let mut node_state = self.value.try_borrow_mut()?;
                 node_state.clean();
                 F::update_derived(input, node_state)?;
                 // TODO: I'm running in to lifetime issues passing a
@@ -172,13 +172,13 @@ where
                 //  causes the borrow checker to want node_state to live
                 //  beyond the current block (presumably to match input),
                 //  whereas a shared reference does not.
-                let mut node_state = self.data.try_borrow_mut()?;
+                let mut node_state = self.value.try_borrow_mut()?;
                 node_state.update_node_hash(&mut visitor.hasher());
                 visitor.notify_recalculated(self);
             }
         }
         visitor.leave(self);
-        Ok(self.data.try_borrow()?)
+        Ok(self.value.try_borrow()?)
     }
 }
 
