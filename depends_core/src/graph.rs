@@ -110,6 +110,7 @@ fn derive_graph_inner(input: TokenStream) -> syn::Result<TokenStream> {
             where
                 #constraint
             {
+                #[allow(clippy::too_many_arguments)]
                 fn new(#(#input_idents: ::std::rc::Rc<::depends::InputNode<#input_types>>,)* #root_var_name: R) -> Self {
                     Self {
                         #(#input_idents,)*
