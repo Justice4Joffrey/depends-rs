@@ -38,7 +38,7 @@ Using that in practice then becomes:
 
 > Note we can't _create_ the graph inside one of its methods, as it must be able to _infer_ a generic paramter `R` from
 > the arguments provided. A helper function
-> 
-> ```fn create_graph(...) -> Graph<impl Resolve<...>>```
-> 
+>
+> `fn create_graph(...) -> Graph<impl Resolve<...>>`
+>
 > can be useful here.

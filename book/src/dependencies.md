@@ -13,7 +13,7 @@ By marking `TwoNumbers` with `#[derive(Dependencies)]`, you tell Depends that `T
 Here's a table that shows the equivalent types for single and multiple dependencies:
 
 |                      | Dependency\<A\>              | TwoNumbers                     |
-|----------------------|------------------------------|--------------------------------|
+| -------------------- | ---------------------------- | ------------------------------ |
 | **Constructor**      | `Dependency::<A>::new(a: A)` | `TwoNumbers::init(a: A, b: B)` |
 | **Initialised Type** | `Dependency<A>`              | `TwoNumbersDep<A, B>`          |
 | **Reference Type**   | `SingleRef<'a, A>`           | `TwoNumbersRef<'a>`            |
@@ -30,5 +30,5 @@ There are situations where it's useful to know which specific dependencies have 
 ```
 
 > The most common is example is time. It's expected that no node uses methods such as `Utc::now()`, as this is a side-effect which will result in non-deterministic behaviour.
-> 
+>
 > Instead, you should 'set' the time for the graph by providing it as an [Input Node](./input_nodes.md) and creating edges to the nodes which require it.

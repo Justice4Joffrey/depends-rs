@@ -26,4 +26,3 @@ appear dirty to any dependents, causing them to always recalculate their own sta
 
 > **It's unlikely you'll need to use the `unhashable` attribute and this can greatly reduce the efficiency of
 > computations. Most nodes can use a custom hash field instead.**
-

@@ -1,6 +1,5 @@
 # Derived Nodes
 
-
 [Derived nodes](https://docs.rs/depends/latest/depends/struct.DerivedNode.html) calculate their internal value from other values in the graph.
 
 Any struct which derives `Value` can be used as a Derived Node. In order to create a derived node, however, we'll need to define:
