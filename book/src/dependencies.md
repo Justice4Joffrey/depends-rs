@@ -12,11 +12,11 @@ By marking `TwoNumbers` with `#[derive(Dependencies)]`, you tell Depends that `T
 
 Here's a table that shows the equivalent types for single and multiple dependencies:
 
-|                      | Dependency\<A\>      | TwoNumbers               |
-|----------------------|----------------------|--------------------------|
-| **Constructor**      | `Dependency::new(A)` | `TwoNumbers::init(A, B)` |
-| **Initialised Type** | `Dependency<A>`      | `TwoNumbersDep<A, B>`    |
-| **Reference Type**   | `SingleRef<'a, A>`   | `TwoNumbersRef<'a>`      |
+|                      | Dependency\<A\>              | TwoNumbers                     |
+|----------------------|------------------------------|--------------------------------|
+| **Constructor**      | `Dependency::<A>::new(a: A)` | `TwoNumbers::init(a: A, b: B)` |
+| **Initialised Type** | `Dependency<A>`              | `TwoNumbersDep<A, B>`          |
+| **Reference Type**   | `SingleRef<'a, A>`           | `TwoNumbersRef<'a>`            |
 
 This table describes the equivalent constructors, initialised types, and reference types for single (`Dependency<A>`) and multiple dependencies (`TwoNumbers`).
 You can use `TwoNumbersRef<'a>` with any operation that requires two `NumberValue`s. This allows you to build complex, flexible dependency graphs.

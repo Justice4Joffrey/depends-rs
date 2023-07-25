@@ -70,8 +70,8 @@ let posts = InputNode::new(Posts::default());
 // get shared access to it.
 posts.update(Post { id: 42 }).unwrap();
 
-let data = posts.data().unwrap();
-let changed: Vec<_> = data.iter_changed().collect();
+let value = posts.value().unwrap();
+let changed: Vec<_> = value.iter_changed().collect();
 
 assert_eq!(changed.len(), 1);
 assert_eq!(changed[0].id, 42);

@@ -171,6 +171,6 @@ fn main() {
         println!("Decision: {:?}", decision);
         // Update the graph
         open_orders.update(decision).unwrap();
-        println!("Current orders: {:?}", open_orders.data().unwrap().value);
+        println!("Current orders: {:?}", open_orders.value().unwrap().value);
     }
 }
