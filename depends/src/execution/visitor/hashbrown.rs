@@ -51,8 +51,8 @@ mod tests {
         assert!(visitor.contains(&2));
         visitor.clear();
         assert_eq!(visitor.len(), 0);
-        let hasher = visitor.hasher();
-        hasher.hash_one(654);
-        // TODO: must be unique.
+        let hasher_b = visitor.hasher();
+        let hasher_a = visitor.hasher();
+        assert_eq!(hasher_a.hash_one(654), hasher_b.hash_one(654));
     }
 }
