@@ -112,3 +112,16 @@ impl DiagnosticVisitor {
         Self::default()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_visitor_hasher() {
+        let visitor = HashSetVisitor::default();
+        let hasher_a = visitor.hasher();
+        let hasher_b = visitor.hasher();
+        assert_eq!(hasher_a.hash_one(123), hasher_b.hash_one(123));
+    }
+}
