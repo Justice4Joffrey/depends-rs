@@ -61,15 +61,12 @@ impl TryFrom<GraphvizModel> for ParsedGraphvizModel {
             let attribute_map = v.attribute_map();
             match v {
                 VertexOrEdge::Vertex(v) => {
-                    let ty = attribute_map
-                        .get(LABEL)
-                        .map(|l| l.value().to_string())
-                        .ok_or_else(|| {
-                            syn::Error::new(
-                                v.attr_span.span(),
-                                format!("Vertex `{}` has no label", v.ident),
-                            )
-                        })?;
+                    let ty = attribute_map.get(LABEL).map(|l| l.value()).ok_or_else(|| {
+                        syn::Error::new(
+                            v.attr_span.span(),
+                            format!("Vertex `{}` has no label", v.ident),
+                        )
+                    })?;
                     vertices.insert(
                         v.ident.to_string(),
                         Node {
@@ -86,7 +83,7 @@ impl TryFrom<GraphvizModel> for ParsedGraphvizModel {
                             format!("Edge `{} -> {}` has no label", e.from, e.to),
                         )
                     })?;
-                    let dependency_group = attribute_map.get(CLASS).map(|l| l.value().to_string());
+                    let dependency_group = attribute_map.get(CLASS).map(|l| l.value());
                     edges.push(Edge {
                         from: e.from.to_string(),
                         to: e.to.to_string(),

@@ -85,7 +85,7 @@ impl TryFrom<StringRecord> for Update {
 }
 
 mod date_format {
-    use chrono::{DateTime, TimeZone, Utc};
+    use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer};
 
     const FORMAT: &str = "%Y-%m-%d %H:%M:%S";
@@ -95,7 +95,8 @@ mod date_format {
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        Utc.datetime_from_str(&s, FORMAT)
+        NaiveDateTime::parse_from_str(&s, FORMAT)
+            .map(|dt| Utc.from_utc_datetime(&dt))
             .map_err(serde::de::Error::custom)
     }
 }

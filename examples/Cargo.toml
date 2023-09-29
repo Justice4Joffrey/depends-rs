@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 depends = { path = "../depends", features = ["graphviz", "hashbrown", "test-utils"] }
 
-chrono = "0.4.26"
+chrono = "0.4.31"
 csv = "1.2.2"
 hashbrown = "0.14.0"
 serde = { version = "1.0.171", features = ["derive"] }
