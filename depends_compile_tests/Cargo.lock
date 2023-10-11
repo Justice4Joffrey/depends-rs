@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "depends"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "ahash",
  "depends_derives",
@@ -149,7 +149,7 @@ dependencies = [
 
 [[package]]
 name = "depends_core"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "petgraph",
  "proc-macro-error",
@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "depends_derives"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "depends_core",
  "proc-macro-error",
