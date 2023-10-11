@@ -136,6 +136,7 @@ fn derive_dependencies_inner(input: TokenStream) -> syn::Result<TokenStream> {
 
         impl #ident
         {
+            #[allow(clippy::too_many_arguments)]
             pub fn init #generics(#field_args) -> #dep_ident #generics
             where
                 #(#where_clauses),*

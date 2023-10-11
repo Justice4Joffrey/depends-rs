@@ -1,6 +1,5 @@
 ---
 source: depends_core/src/dependencies.rs
-assertion_line: 206
 expression: format_source(derive_dependencies(input).to_string().as_str())
 ---
 struct ComponentsDep<A, B, C> {
@@ -19,6 +18,7 @@ struct ComponentsRef<'a> {
     node3: ::depends::DepRef<'a, ::std::cell::Ref<'a, ::depends::NodeState<Node3>>>,
 }
 impl Components {
+    #[allow(clippy::too_many_arguments)]
     pub fn init<A, B, C>(
         node1: ::std::rc::Rc<A>,
         node2: ::std::rc::Rc<B>,
