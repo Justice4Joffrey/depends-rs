@@ -161,10 +161,10 @@ where
     fn resolve(&self, visitor: &mut impl Visitor) -> Result<Self::Output<'_>, ResolveError> {
         visitor.touch(self, Some(F::name()));
         if visitor.visit(self) {
+            let mut node_state = self.value.try_borrow_mut()?;
+            node_state.clean();
             let input = self.dependencies.resolve_workaround(visitor)?;
             if input.is_dirty() {
-                let mut node_state = self.value.try_borrow_mut()?;
-                node_state.clean();
                 F::update_derived(input, node_state)?;
                 // TODO: I'm running in to lifetime issues passing a
                 //  &mut node_state above, which would prevent the need to
