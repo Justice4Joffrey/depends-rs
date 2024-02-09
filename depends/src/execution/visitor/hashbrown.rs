@@ -32,7 +32,10 @@ mod tests {
 
     use super::*;
     use crate::{
-        execution::{identifiable::reset_node_id, internal_test_utils::TestData},
+        execution::{
+            identifiable::reset_node_id, internal_test_utils::TestData,
+            visitor::hash_one_ext::hash_one,
+        },
         InputNode,
     };
 
@@ -53,6 +56,6 @@ mod tests {
         assert_eq!(visitor.len(), 0);
         let hasher_b = visitor.hasher();
         let hasher_a = visitor.hasher();
-        assert_eq!(hasher_a.hash_one(654), hasher_b.hash_one(654));
+        assert_eq!(hash_one(hasher_a, 654), hash_one(hasher_b, 654));
     }
 }

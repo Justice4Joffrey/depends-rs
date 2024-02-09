@@ -1,3 +1,5 @@
+#[cfg(test)]
+mod hash_one_ext;
 #[cfg(feature = "hashbrown")]
 pub mod hashbrown;
 
@@ -116,12 +118,13 @@ impl DiagnosticVisitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::execution::visitor::hash_one_ext::hash_one;
 
     #[test]
     fn test_visitor_hasher() {
         let visitor = HashSetVisitor::default();
         let hasher_a = visitor.hasher();
         let hasher_b = visitor.hasher();
-        assert_eq!(hasher_a.hash_one(123), hasher_b.hash_one(123));
+        assert_eq!(hash_one(hasher_a, 123), hash_one(hasher_b, 123));
     }
 }
