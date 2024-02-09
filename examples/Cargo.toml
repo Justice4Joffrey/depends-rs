@@ -11,7 +11,7 @@ chrono = "0.4.31"
 csv = "1.2.2"
 hashbrown = "0.14.0"
 serde = { version = "1.0.171", features = ["derive"] }
-serial_test = "2.0.0"
+serial_test = "3.0.0"
 
 [[example]]
 name = "custom_clean"

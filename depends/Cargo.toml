@@ -16,7 +16,7 @@ hashbrown = { version = "0.14.0", optional = true, features = ["ahash"] }
 thiserror = "1.0.43"
 
 [dev-dependencies]
-serial_test = "2.0.0"
+serial_test = "3.0.0"
 
 [features]
 default = []
