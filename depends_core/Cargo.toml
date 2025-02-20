@@ -2,7 +2,7 @@
 rust-version = "1.78.0"
 name = "depends_core"
 license = "MIT"
-version = "0.10.2"
+version = "0.11.0"
 edition = "2021"
 description = "Ergonomic, performant, incremental computation between arbitrary types"
 
