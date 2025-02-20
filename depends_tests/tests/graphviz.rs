@@ -1,46 +1,57 @@
-mod common;
-
 use std::rc::Rc;
 
-use depends::{graphviz::GraphvizVisitor, Dependency, DerivedNode, InputNode, Resolve};
-
-use crate::common::*;
+use depends::{
+    graphviz::GraphvizVisitor, Dependencies2, Dependencies3, Dependency, DerivedNode, InputNode,
+    Resolve,
+};
+use examples::maths::*;
 
 #[test]
 fn test_graphviz() {
-    let a = InputNode::new(NumberValue::new(2));
-    let b = InputNode::new(NumberValue::new(4));
-    let c = InputNode::new(NumberValue::new(3));
+    let a = InputNode::new(NumberValueI32::new(4));
+    let b = InputNode::new(NumberValueI32::new(5));
+    let c = InputNode::new(NumberValueI8::new(6));
+    let d = InputNode::new(NumberValueI8::new(7));
+
     let c_sq = DerivedNode::new(
         Dependency::new(Rc::clone(&c)),
         Square,
-        NumberValue::default(),
+        NumberValueI32::default(),
     );
-    let ab = TwoNumbers::init(Rc::clone(&a), Rc::clone(&b));
-    let sum_ab = DerivedNode::new(ab, Add, NumberValue::default());
-    let sum_ab_c_sq = TwoNumbers::init(Rc::clone(&c_sq), Rc::clone(&sum_ab));
-    let answer = DerivedNode::new(sum_ab_c_sq, Multiply, NumberValue::default());
+    let product_ab = DerivedNode::new(
+        Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
+        Multiply,
+        NumberValueI32::default(),
+    );
+
+    let answer = DerivedNode::new(
+        Dependencies3::new(Rc::clone(&product_ab), Rc::clone(&c_sq), Rc::clone(&d)),
+        Sum,
+        NumberValueI32::default(),
+    );
 
     let mut visitor = GraphvizVisitor::new();
     {
         let result = answer.resolve(&mut visitor).unwrap();
-        assert_eq!(result.value, (2 + 4) * (3 * 3));
+        assert_eq!(result.value, (4 * 5) + (6 * 6) + 7);
 
         println!("{}", visitor.render().unwrap());
         assert_eq!(
             r#"
 digraph Dag {
-  node_0 [label="NumberValue"];
-  node_1 [label="NumberValue"];
-  node_2 [label="NumberValue"];
-  node_3 [label="NumberValue"];
-  node_2 -> node_3 [label="Square"];
-  node_4 [label="NumberValue"];
-  node_0 -> node_4 [label="Add", class="TwoNumbersDep"];
-  node_1 -> node_4 [label="Add", class="TwoNumbersDep"];
-  node_5 [label="NumberValue"];
-  node_3 -> node_5 [label="Multiply", class="TwoNumbersDep"];
-  node_4 -> node_5 [label="Multiply", class="TwoNumbersDep"];
+  node_0 [label="NumberValueI32"];
+  node_1 [label="NumberValueI32"];
+  node_2 [label="NumberValueI8"];
+  node_3 [label="NumberValueI8"];
+  node_4 [label="NumberValueI32"];
+  node_2 -> node_4 [label="Square"];
+  node_5 [label="NumberValueI32"];
+  node_0 -> node_5 [label="Multiply", class="Dependencies2"];
+  node_1 -> node_5 [label="Multiply", class="Dependencies2"];
+  node_6 [label="NumberValueI32"];
+  node_5 -> node_6 [label="Sum", class="Dependencies3"];
+  node_4 -> node_6 [label="Sum", class="Dependencies3"];
+  node_3 -> node_6 [label="Sum", class="Dependencies3"];
 }
     "#
             .trim(),

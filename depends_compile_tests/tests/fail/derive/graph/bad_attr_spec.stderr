@@ -1,11 +1,11 @@
 error: Vertex `comment` has no label
- --> tests/fail/derive/graph/bad_attr_spec.rs:8:17
+ --> tests/fail/derive/graph/bad_attr_spec.rs:9:17
   |
-8 |         comment [class="Comments"];
+9 |         comment [class="Comments"];
   |                 ^^^^^^^^^^^^^^^^^^
 
 error: Edge `comment -> comment_to_post` has no label
-  --> tests/fail/derive/graph/bad_attr_spec.rs:20:36
+  --> tests/fail/derive/graph/bad_attr_spec.rs:21:36
    |
-20 |         comment -> comment_to_post [class="TrackCommentPostIds"];
-   |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+21 |         comment -> comment_to_post [class="Dependencies2"];
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^

@@ -23,7 +23,7 @@
 //! the compile-time guarantees of the type-system.
 //!
 //! ```
-//! # use std::cell::{RefMut};
+//! # use std::cell::{Ref, RefMut};
 //! # use std::{
 //! #     hash::{Hash, Hasher},
 //! # };
@@ -31,26 +31,19 @@
 //! # use std::rc::Rc;
 //! #
 //! # use depends::error::{EarlyExit, ResolveResult};
-//! # use depends::{HashSetVisitor, NodeState, SingleRef, TargetMut};
+//! # use depends::{Dependencies2, DependencyEdge, DepRef2, HashSetVisitor, NodeState, DepRef};
 //! # use depends::{
 //! #     DerivedNode, InputNode, Resolve, UpdateDerived, UpdateInput,
-//! #     derives::{Dependencies, Operation, Value},
+//! #     derives::{Operation, Value},
 //! # };
-//! # #[derive(Dependencies)]
-//! # pub struct TwoNumbers {
-//! #    left: i64,
-//! #    right: i32,
-//! # }
 //! # #[derive(Operation)]
 //! # struct Multiply;
-//! # impl UpdateDerived for Multiply {
-//! #    type Input<'a> = TwoNumbersRef<'a> where Self: 'a;
-//! #    type Target<'a> = TargetMut<'a, i64> where Self: 'a;
-//! #    fn update_derived(
-//! #        TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-//! #        mut target: TargetMut<'_, i64>,
+//! # impl UpdateDerived<DepRef2<'_, i64, i32>, Multiply> for i64 {
+//! #    fn update(
+//! #        &mut self,
+//! #        deps: DepRef2<'_, i64, i32>,
 //! #    ) -> Result<(), EarlyExit> {
-//! #        *target.value_mut() = left.value() * (*right.value() as i64);
+//! #        *self = deps.0.data().value() * (*deps.1.data().value()as i64);
 //! #        Ok(())
 //! #    }
 //! # }
@@ -65,7 +58,7 @@
 //! // they're compatible with the dependencies (`TwoNumbers`) and operation
 //! // (`Multiply`).
 //! let c = DerivedNode::new(
-//!     TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
+//!     Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
 //!     Multiply,
 //!     0_i64,
 //! );
@@ -89,7 +82,6 @@
 //! // Any dependent values will be updated next time the graph is resolved.
 //! assert_eq!(c.resolve_root(&mut visitor).unwrap().value().clone(), 420);
 //! ```
-#![cfg_attr(doc_cfg, feature(doc_cfg, doc_auto_cfg))]
 
 mod execution;
 pub use execution::*;

@@ -9,10 +9,10 @@ mod comments_to_posts;
 mod docs;
 mod friends;
 mod likes;
+pub mod maths;
 mod post_scores_query;
 mod posts;
 mod users;
-
 pub use comments::Comments;
 pub use comments_to_posts::*;
 pub use friends::Friends;

@@ -1,9 +1,11 @@
 [package]
+rust-version = "1.78.0"
 name = "depends_tests"
 version = "0.0.0"
 edition = "2021"
 publish = false
 
 [dependencies]
-depends = {path = "../depends", features = ["graphviz"]}
+depends = { path = "../depends", features = ["graphviz"] }
+examples = { path = "../examples" }
 

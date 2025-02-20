@@ -1,6 +1,5 @@
 ---
 source: depends_core/src/graph.rs
-assertion_line: 228
 expression: format_source(derive_graph(input).to_string().as_str())
 ---
 mod __depends_graph_components {
@@ -60,7 +59,10 @@ mod __depends_graph_components {
                 Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<PostScoresQuery>>,
             > + 'a,
     {
-        type Output < 'a > = < R as :: depends :: Resolve > :: Output < 'a > where Self : 'a ;
+        type Output<'a>
+            = <R as ::depends::Resolve>::Output<'a>
+        where
+            Self: 'a;
 
         fn resolve(
             &self,
@@ -92,13 +94,12 @@ mod __depends_graph_components {
             );
             let node_4 = ::depends::DerivedNode::new(
                 {
-                    let d: Update<_, _, _, _> = (
+                    let d = Dependencies4::<_, _, _, _>::new(
                         ::std::rc::Rc::clone(&node_0),
                         ::std::rc::Rc::clone(&node_1),
                         ::std::rc::Rc::clone(&node_2),
                         ::std::rc::Rc::clone(&node_3),
-                    )
-                        .into();
+                    );
                     d
                 },
                 UpdatePostScoresQuery,

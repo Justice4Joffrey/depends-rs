@@ -2,9 +2,9 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 
 use chrono::{DateTime, Utc};
 use depends::{
-    derives::{Dependencies, Operation, Value},
+    derives::{Operation, Value},
     error::EarlyExit,
-    TargetMut, UpdateDerived,
+    DepRef4, UpdateDerived,
 };
 use hashbrown::HashMap;
 
@@ -34,6 +34,14 @@ pub struct PostScoresQuery {
 }
 
 impl PostScoresQuery {
+    pub fn new() -> Self {
+        Self {
+            post_scores: HashMap::with_capacity(512),
+            top_posts: BinaryHeap::with_capacity(3),
+            top_posts_generation: 0,
+        }
+    }
+
     pub fn top_posts(&self) -> String {
         let sorted = self.top_posts.clone().into_sorted_vec();
         sorted
@@ -78,15 +86,6 @@ impl PostScoresQuery {
         false
     }
 
-    /// Only stable since 1.70.0 and we want to keep MRSV to 1.65
-    #[cfg(nightly)]
-    fn retain_top_posts(&mut self, other_than: i64) {
-        self.top_posts.retain(|p| p.0.id != other_than);
-    }
-
-    /// Only stable since 1.70.0 and we want to keep MRSV to 1.65. Don't
-    /// care about the performance of this function.
-    #[cfg(not(nightly))]
     fn retain_top_posts(&mut self, other_than: i64) {
         let mut heap = BinaryHeap::new();
         while let Some(post) = self.top_posts.pop() {
@@ -98,36 +97,19 @@ impl PostScoresQuery {
     }
 }
 
-#[derive(Dependencies)]
-pub struct CommentsPostsLikes {
-    comments: Comments,
-    comments_to_posts: CommentsToPosts,
-    posts: Posts,
-    likes: Likes,
-}
-
 #[derive(Operation)]
 pub struct UpdatePostScoresQuery;
 
-impl UpdateDerived for UpdatePostScoresQuery {
-    type Input<'a> = CommentsPostsLikesRef<'a>
-    where
-        Self: 'a;
-    type Target<'a> = TargetMut<'a, PostScoresQuery>
-    where
-        Self: 'a;
-
-    fn update_derived(
-        CommentsPostsLikesRef {
-            comments,
-            comments_to_posts,
-            posts,
-            likes,
-        }: Self::Input<'_>,
-        mut target: Self::Target<'_>,
+// TODO: use shorthand
+impl UpdateDerived<DepRef4<'_, Comments, CommentsToPosts, Posts, Likes>, UpdatePostScoresQuery>
+    for PostScoresQuery
+{
+    fn update(
+        &mut self,
+        value: DepRef4<'_, Comments, CommentsToPosts, Posts, Likes>,
     ) -> Result<(), EarlyExit> {
-        for post in posts.new_posts() {
-            target.post_scores.insert(
+        for post in value.2.new_posts() {
+            self.post_scores.insert(
                 post.id,
                 PostScore {
                     score: 0,
@@ -138,20 +120,20 @@ impl UpdateDerived for UpdatePostScoresQuery {
         }
 
         let mut delta = 0;
-        for comment in comments.new_comments() {
-            let post_id = comments_to_posts.get_post_id(comment.id)?;
-            if target.update_post_score(post_id, 10)? {
+        for comment in value.0.new_comments() {
+            let post_id = value.1.get_post_id(comment.id)?;
+            if self.update_post_score(post_id, 10)? {
                 delta = 1;
             }
         }
 
-        for like in likes.new_likes() {
-            let post_id = comments_to_posts.get_post_id(like.comment_id)?;
-            if target.update_post_score(post_id, 1)? {
+        for like in value.3.new_likes() {
+            let post_id = value.1.get_post_id(like.comment_id)?;
+            if self.update_post_score(post_id, 1)? {
                 delta = 1;
             }
         }
-        target.top_posts_generation += delta;
+        self.top_posts_generation += delta;
         Ok(())
     }
 }

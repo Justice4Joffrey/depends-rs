@@ -17,6 +17,14 @@ pub struct Likes {
 }
 
 impl Likes {
+    pub fn new() -> Self {
+        Self {
+            user_likes_by_comment: HashMap::with_capacity(512),
+            new_likes: Vec::with_capacity(512),
+            generation: 0,
+        }
+    }
+
     /// An iterator over all likes that have been added since the last
     /// generation.
     pub fn new_likes(&self) -> impl Iterator<Item = &Like> + '_ {

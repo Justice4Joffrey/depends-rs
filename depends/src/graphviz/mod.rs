@@ -23,84 +23,154 @@ impl Node {
 /// A [Visitor] which builds a `Graphviz` representation of a given graph.
 ///
 /// ```
-/// # use std::{collections::HashSet, hash::Hash, rc::Rc};
-/// #
+/// # use std::{cell::Ref, collections::HashSet, hash::Hash, rc::Rc};
 /// # use depends::{
-/// #     Dependency, HashValue, Resolve, UpdateDerived, UpdateInput,
-/// #     NodeHash, InputNode, DerivedNode, TargetMut, SingleRef,
+/// #     derives::{Operation, Value},
 /// #     error::{EarlyExit, ResolveResult},
-/// #     derives::{Dependencies, Value, Operation},
+/// #     DependencyEdge, DepRef2, DepRef3, Dependencies2, Dependencies3, Dependency, DerivedNode, HashValue,
+/// #     InputNode, NodeHash, Resolve, DepRef, UpdateDerived, UpdateInput,
 /// # };
-/// #
-/// # #[derive(Value, Default, Hash, Debug)]
-/// # pub struct NumberValue {
-/// #     value: i32,
+/// # pub trait NumberLike {
+/// #     fn number_value(&self) -> i32;
+/// # }
+/// # #[derive(Value, Default, Hash)]
+/// # pub struct NumberValueI32 {
+/// #     pub value: i32,
+/// # }
+/// # impl NumberValueI32 {
+/// #     pub fn new(value: i32) -> Self {
+/// #         Self { value }
+/// #     }
 /// # }
 /// #
-/// # impl UpdateInput for NumberValue {
+/// # impl UpdateInput for NumberValueI32 {
 /// #     type Update = i32;
 /// #
-/// #     fn update_mut(&mut self, input: Self::Update) {
-/// #         self.value = input;
+/// #     fn update_mut(&mut self, update: Self::Update) {
+/// #         // Implementing this trait will provide a way for code outside of this graph to
+/// #         // change its internal state. This is just a simple replace for now.
+/// #         self.value = update;
+/// #     }
+/// # }
+/// #
+/// # #[derive(Value, Default, Hash)]
+/// # pub struct NumberValueI8 {
+/// #     pub value: i8,
+/// # }
+/// #
+/// # impl NumberValueI8 {
+/// #     pub fn new(value: i8) -> Self {
+/// #         Self { value }
+/// #     }
+/// # }
+/// #
+/// # impl NumberLike for NumberValueI8 {
+/// #     fn number_value(&self) -> i32 {
+/// #         self.value as i32
+/// #     }
+/// # }
+/// # impl NumberLike for NumberValueI32 {
+/// #     fn number_value(&self) -> i32 {
+/// #         self.value
+/// #     }
+/// # }
+/// #
+/// # impl UpdateInput for NumberValueI8 {
+/// #     type Update = i8;
+/// #
+/// #     fn update_mut(&mut self, update: Self::Update) {
+/// #         // Implementing this trait will provide a way for code outside of this graph to
+/// #         // change its internal state. This is just a simple replace for now.
+/// #         self.value = update;
 /// #     }
 /// # }
 /// # #[derive(Operation)]
-/// # struct Add;
+/// # pub struct Sum;
 /// #
-/// # impl UpdateDerived for Add {
-/// #     type Input<'a> = TwoNumbersRef<'a> where Self: 'a;
-/// #     type Target<'a> = TargetMut<'a, NumberValue> where Self: 'a;
-/// #
-/// #     fn update_derived(
-/// #         TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-/// #         mut target: TargetMut<'_, NumberValue>,
-/// #     ) -> Result<(), EarlyExit> {
-/// #         target.value = left.value + right.value;
+/// # impl<A: NumberLike, B: NumberLike> UpdateDerived<DepRef2<'_, A, B>, Sum> for NumberValueI32 {
+/// #     fn update(&mut self, value: DepRef2<'_, A, B>) -> Result<(), EarlyExit> {
+/// #         self.value = value.0.data().number_value() + value.1.data().number_value();
 /// #         Ok(())
 /// #     }
 /// # }
 /// #
-/// # #[derive(Operation)]
-/// # struct Square;
-/// #
-/// # impl UpdateDerived for Square{
-/// #     type Input<'a> = SingleRef<'a, NumberValue> where Self: 'a;
-/// #     type Target<'a> = TargetMut<'a, NumberValue> where Self: 'a;
-/// #
-/// #     fn update_derived(
-/// #         input: Self::Input<'_>,
-/// #         mut target: TargetMut<'_, NumberValue>,
-/// #     ) -> Result<(), EarlyExit> {
-/// #         target.value = input.value.pow(2);
+/// # impl<A: NumberLike, B: NumberLike, C: NumberLike> UpdateDerived<DepRef3<'_, A, B, C>, Sum>
+/// # for NumberValueI32
+/// # {
+/// #     fn update(&mut self, value: DepRef3<'_, A, B, C>) -> Result<(), EarlyExit> {
+/// #         self.value = value.0.data().number_value() + value.1.data().number_value() + value.2.data().number_value();
 /// #         Ok(())
 /// #     }
 /// # }
+/// # #[derive(Operation)]
+/// # pub struct Square;
 /// #
-/// # #[derive(Dependencies)]
-/// # pub struct TwoNumbers {
-/// #     left: NumberValue,
-/// #     right: NumberValue,
+/// # impl<A: NumberLike> UpdateDerived<DepRef<'_, A>, Square> for NumberValueI32 {
+/// #     fn update(&mut self, value: DepRef<'_, A>) -> Result<(), EarlyExit> {
+/// #         self.value = value.data().number_value().pow(2);
+/// #         Ok(())
+/// #     }
 /// # }
+/// # #[derive(Operation)]
+/// # pub struct Multiply;
 /// #
+/// # impl<A: NumberLike, B: NumberLike> UpdateDerived<DepRef2<'_, A, B>, Multiply> for NumberValueI32 {
+/// #     fn update(&mut self, value: DepRef2<'_, A, B>) -> Result<(), EarlyExit> {
+/// #         self.value = value.0.data().number_value() * value.1.data().number_value();
+/// #         Ok(())
+/// #     }
+/// # }
 /// use depends::graphviz::GraphvizVisitor;
+/// use depends::NodeState;
+///
+/// let a = InputNode::new(NumberValueI32::new(1));
+/// let b = InputNode::new(NumberValueI32::new(2));
+/// // Note that we can combine different types in the same graph.
+/// let c = InputNode::new(NumberValueI8::new(3));
+/// let d = InputNode::new(NumberValueI32::new(4));
+/// let e = InputNode::new(NumberValueI32::new(5));
+///
+/// // Now for some derived nodes. We can't update these from outside of the
+/// // graph. They are updated when their dependencies change.
 ///
 /// // Compose a graph.
-/// let left = InputNode::new(NumberValue::default());
-/// let left_squared = DerivedNode::new(
-///     Dependency::new(Rc::clone(&left)),
+/// let c_squared = DerivedNode::new(
+///     Dependency::new(Rc::clone(&c)),
 ///     Square,
-///     NumberValue::default(),
+///     NumberValueI32::default(),
 /// );
-/// let right = InputNode::new(NumberValue::default());
-/// let two_numbers = TwoNumbers::init(left_squared, right);
-/// let sum = DerivedNode::new(two_numbers, Add, NumberValue::default());
-/// let sum_squared = DerivedNode::new(Dependency::new(sum), Square, NumberValue::default());
+/// // Sum of a and b
+/// let a_plus_b = DerivedNode::new(
+///     Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
+///     Sum,
+///     NumberValueI32::default(),
+/// );
+///
+/// // Product of d and e
+/// let d_times_e = DerivedNode::new(
+///     Dependencies2::new(Rc::clone(&d), Rc::clone(&e)),
+///     Multiply,
+///     NumberValueI32::default(),
+/// );
+/// // Create another edge to node a
+/// let a_plus_d_times_e = DerivedNode::new(
+///     Dependencies2::new(Rc::clone(&a), Rc::clone(&d_times_e)),
+///     Sum,
+///     NumberValueI32::default(),
+/// );
+///
+/// // Finally, the sum of all of the above
+/// let answer = DerivedNode::new(
+///     Dependencies3::new(Rc::clone(&c_squared), Rc::clone(&a_plus_b), Rc::clone(&a_plus_d_times_e)),
+///     Sum,
+///     NumberValueI32::default(),
+/// );
 ///
 /// let mut visitor = GraphvizVisitor::new();
 ///
 /// // Resolve the graph with this visitor.
 /// // Be sure NOT to use `resolve_root`, as this will clear the visitor's state.
-/// sum_squared.resolve(&mut visitor).unwrap();
+/// answer.resolve(&mut visitor).unwrap();
 ///
 /// println!("{}", visitor.render().unwrap());
 /// // A Graphviz representation is now available on the visitor!
@@ -108,15 +178,26 @@ impl Node {
 ///     visitor.render().unwrap(),
 ///     r#"
 /// digraph Dag {
-///   node_0 [label="NumberValue"];
-///   node_1 [label="NumberValue"];
-///   node_0 -> node_1 [label="Square"];
-///   node_2 [label="NumberValue"];
-///   node_3 [label="NumberValue"];
-///   node_1 -> node_3 [label="Add", class="TwoNumbersDep"];
-///   node_2 -> node_3 [label="Add", class="TwoNumbersDep"];
-///   node_4 [label="NumberValue"];
-///   node_3 -> node_4 [label="Square"];
+///   node_0 [label="NumberValueI32"];
+///   node_1 [label="NumberValueI32"];
+///   node_2 [label="NumberValueI8"];
+///   node_3 [label="NumberValueI32"];
+///   node_4 [label="NumberValueI32"];
+///   node_5 [label="NumberValueI32"];
+///   node_2 -> node_5 [label="Square"];
+///   node_6 [label="NumberValueI32"];
+///   node_0 -> node_6 [label="Sum", class="Dependencies2"];
+///   node_1 -> node_6 [label="Sum", class="Dependencies2"];
+///   node_7 [label="NumberValueI32"];
+///   node_3 -> node_7 [label="Multiply", class="Dependencies2"];
+///   node_4 -> node_7 [label="Multiply", class="Dependencies2"];
+///   node_8 [label="NumberValueI32"];
+///   node_0 -> node_8 [label="Sum", class="Dependencies2"];
+///   node_7 -> node_8 [label="Sum", class="Dependencies2"];
+///   node_9 [label="NumberValueI32"];
+///   node_5 -> node_9 [label="Sum", class="Dependencies3"];
+///   node_6 -> node_9 [label="Sum", class="Dependencies3"];
+///   node_8 -> node_9 [label="Sum", class="Dependencies3"];
 /// }
 /// "#
 ///     .trim()
@@ -128,6 +209,8 @@ pub struct GraphvizVisitor {
     nodes: BTreeMap<usize, Node>,
     stack: Vec<usize>,
 }
+// TODO: you need to name the actual dependency type, as it could be custom
+//  or like Dependencies4 etc.
 
 impl GraphvizVisitor {
     pub fn new() -> Self {
@@ -153,7 +236,7 @@ impl GraphvizVisitor {
                     let class = n
                         .dependency
                         .map(|d| format!(", class=\"{}\"", d))
-                        .unwrap_or_else(String::new);
+                        .unwrap_or_default();
                     let edge_label = format!("[label=\"{}\"{}]", op, class);
                     n.edges.iter().for_each(|c| {
                         lines.push(format!(

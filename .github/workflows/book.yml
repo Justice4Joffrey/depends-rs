@@ -42,7 +42,7 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./book/book/html
+          source: ./book/book
           destination: ./_site
 
       - name: Upload artifact

@@ -1,5 +1,0 @@
-error: expected `struct`
- --> tests/fail/derive/dependencies/union.rs:4:1
-  |
-4 | union Bar {
-  | ^^^^^

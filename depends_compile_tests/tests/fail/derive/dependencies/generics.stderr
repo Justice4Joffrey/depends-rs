@@ -1,5 +1,0 @@
-error: Dependencies can't be defined with generics.
- --> tests/fail/derive/dependencies/generics.rs:4:11
-  |
-4 | struct Bar<A, B> {
-  |           ^^^^^^

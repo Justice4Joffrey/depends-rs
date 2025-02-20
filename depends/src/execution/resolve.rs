@@ -26,7 +26,10 @@ pub trait Resolve {
 }
 
 impl<T: Resolve> Resolve for Rc<T> {
-    type Output<'a> = T::Output<'a> where Self: 'a;
+    type Output<'a>
+        = T::Output<'a>
+    where
+        Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
         T::resolve(self, visitor)

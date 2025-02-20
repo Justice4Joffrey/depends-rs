@@ -1,5 +1,5 @@
 use std::{
-    cell::{BorrowError, Ref, RefCell},
+    cell::{BorrowError, RefCell},
     ops::DerefMut,
     rc::Rc,
 };
@@ -112,7 +112,7 @@ where
     }
 
     /// Access the inner value.
-    pub fn value(&self) -> Result<Ref<'_, NodeState<T>>, BorrowError> {
+    pub fn value(&self) -> Result<NodeRef<'_, T>, BorrowError> {
         self.value.try_borrow()
     }
 }
@@ -121,7 +121,10 @@ impl<T> Resolve for InputNode<T>
 where
     T: UpdateInput,
 {
-    type Output<'a> = NodeRef<'a, T> where Self: 'a;
+    type Output<'a>
+        = NodeRef<'a, T>
+    where
+        Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
         visitor.touch(self, None);

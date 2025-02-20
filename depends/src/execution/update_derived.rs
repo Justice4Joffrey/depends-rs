@@ -1,12 +1,5 @@
-use crate::execution::{error::EarlyExit, Named};
+use crate::execution::error::EarlyExit;
 
-pub trait UpdateDerived: Named {
-    type Input<'a>
-    where
-        Self: 'a;
-    type Target<'a>
-    where
-        Self: 'a;
-
-    fn update_derived(input: Self::Input<'_>, target: Self::Target<'_>) -> Result<(), EarlyExit>;
+pub trait UpdateDerived<T, F> {
+    fn update(&mut self, deps: T) -> Result<(), EarlyExit>;
 }

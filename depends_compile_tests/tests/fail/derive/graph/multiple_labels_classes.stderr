@@ -1,11 +1,11 @@
-error: Multiple values for `label` and `class` on edges to node: {("AnotherLabel", Some("CommentTracker")), ("TrackCommentPostIds", Some("CommentTracker"))}.
-  --> tests/fail/derive/graph/multiple_labels_classes.rs:12:9
+error: Multiple values for `label` and `class` on edges to node: {("AnotherLabel", Some("Dependencies2")), ("TrackCommentPostIds", Some("Dependencies2"))}.
+  --> tests/fail/derive/graph/multiple_labels_classes.rs:13:9
    |
-12 |         comments_posts [label="CommentsPosts"];
+13 |         comments_posts [label="CommentsPosts"];
    |         ^^^^^^^^^^^^^^
 
-error: Multiple values for `label` and `class` on edges to node: {("TrackCommentPostIds", Some("AnotherClass")), ("TrackCommentPostIds", Some("CommentTracker"))}.
-  --> tests/fail/derive/graph/multiple_labels_classes.rs:27:9
+error: Multiple values for `label` and `class` on edges to node: {("TrackCommentPostIds", Some("Dependencies2")), ("TrackCommentPostIds", Some("Dependencies3"))}.
+  --> tests/fail/derive/graph/multiple_labels_classes.rs:28:9
    |
-27 |         comments_posts [label="CommentsPosts"];
+28 |         comments_posts [label="CommentsPosts"];
    |         ^^^^^^^^^^^^^^

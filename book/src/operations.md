@@ -1,8 +1,8 @@
 # Operations
 
-An [Operation](https://docs.rs/depends/latest/depends/derives/derive.Operation.html) describes the dependencies of a [Derived Node](./derived_nodes.md), and how those dependencies are used to update the internal [Value](./values.md).
+An [Operation](https://docs.rs/depends/latest/depends/derives/derive.Operation.html) is a marker struct which is used to specify a way of transforming a [Derived Node](./derived_nodes.md) with a set of dependencies.
 
-In Depends, you define an Operation by implementing the [UpdateDerived](https://docs.rs/depends/latest/depends/trait.UpdateDerived.html) trait for a struct. This struct, marked with `#[derive(Operation)]`, symbolizes the operation itself.
+In Depends, you define an Operation with `#[derive(Operation)]`. For these types, you can now implement [UpdateDerived](https://docs.rs/depends/latest/depends/trait.UpdateDerived.html) to specify how to transform data in to the target.
 
 Here is an example of an Operation that squares a number:
 
@@ -12,9 +12,9 @@ Here is an example of an Operation that squares a number:
 {{#include ../../examples/src/docs/simple_value.rs:square}}
 ```
 
-`Square` is an `Operation` that takes a `SingleRef` to `SomeNumber` as input, and a `TargetMut` of `SomeNumber` as its target.
+Above, we're expressing that given a `DepRef` (single dependency read-reference) to a node holding `SomeNumber`, we can pass the `Square` operation to transform the value of a [Derived Node](./derived_nodes.md) holding `SomeNumber`.
 
-The `update_derived` method describes how to use the dependencies (the input) to update the internal value of the derived node (the target).
+The `update` method describes how to use the dependencies (the input) to update the internal value of the derived node.
 
 This operation will take a number and square it. In practice, operations can be any function that transforms the inputs into a new state for the target.
 

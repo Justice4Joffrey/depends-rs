@@ -20,8 +20,6 @@ pub struct NodeDef {
 /// nodes, no cycles and one root node.
 pub struct GraphvizGraph {
     pub name: Ident,
-    /// The root node
-    pub root: DerivedNodeDef,
     /// All input nodes
     pub inputs: Vec<NodeDef>,
     /// All non-root derived nodes

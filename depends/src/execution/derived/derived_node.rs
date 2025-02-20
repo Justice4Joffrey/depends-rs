@@ -1,5 +1,5 @@
 use std::{
-    cell::{Ref, RefCell, RefMut},
+    cell::{Ref, RefCell},
     marker::PhantomData,
     rc::Rc,
 };
@@ -42,36 +42,30 @@ use crate::execution::{
 /// > not be consistent between different visitor instances.
 ///
 /// ```
+/// # use std::cell::Ref;
 /// # use std::rc::Rc;
-/// # use depends::{DerivedNode, HashSetVisitor, InputNode, Resolve, TargetMut, UpdateDerived};
+/// # use depends::{Dependencies2, DepRef2, DerivedNode, HashSetVisitor, InputNode, NodeState, Resolve, UpdateDerived};
 /// # use depends::derives::Operation;
 /// # use depends::error::EarlyExit;
-/// # use depends_derives::Dependencies;
 /// # #[derive(Operation)]
 /// # struct Concat;
-/// # impl UpdateDerived for Concat {
-/// #     type Input<'a> = TwoStringsRef<'a> where Self: 'a;
-/// #     type Target<'a> = TargetMut<'a, String> where Self: 'a;
-/// #     fn update_derived(
-/// #         TwoStringsRef { first, second }: Self::Input<'_>,
-/// #         mut target: Self::Target<'_>,
-/// #     ) -> Result<(), EarlyExit> {
-/// #         **target = format!("{} {}", first.value(), second.value());
+/// # impl UpdateDerived<DepRef2<'_, String, String>, Concat> for String {
+/// #    fn update(
+/// #        &mut self,
+/// #        deps: DepRef2<'_, String, String>,
+/// #    ) -> Result<(), EarlyExit> {
+/// #         *self = format!("{} {}", deps.0.data().value(), deps.1.data().value());
 /// #         Ok(())
-/// #     }
+/// #    }
 /// # }
-/// # #[derive(Dependencies)]
-/// # struct TwoStrings {
-/// #     first: String,
-/// #     second: String,
-/// # }
+///
 /// // Create some input nodes.
 /// let input_1 = InputNode::new("Hello,".to_string());
 /// let input_2 = InputNode::new("???".to_string());
 ///
 /// // Create a derived node.
 /// let node = DerivedNode::new(
-///     TwoStrings::init(Rc::clone(&input_1), Rc::clone(&input_2)),
+///     Dependencies2::new(Rc::clone(&input_1), Rc::clone(&input_2)),
 ///     Concat,
 ///     String::new()
 /// );
@@ -97,7 +91,7 @@ use crate::execution::{
 /// let input_3 = InputNode::new("See ya.".to_string());
 ///
 /// let another_node = DerivedNode::new(
-///     TwoStrings::init(Rc::clone(&node), Rc::clone(&input_3)),
+///     Dependencies2::new(Rc::clone(&node), Rc::clone(&input_3)),
 ///     Concat,
 ///     String::new()
 /// );
@@ -107,7 +101,7 @@ use crate::execution::{
 ///     "Hello, world! See ya."
 /// );
 /// ```
-pub struct DerivedNode<D, F, T> {
+pub struct DerivedNode<D, T, F> {
     /// The dependencies of this node. This can be a single node, or a
     /// struct containing multiple nodes.
     dependencies: D,
@@ -115,23 +109,20 @@ pub struct DerivedNode<D, F, T> {
     value: RefCell<NodeState<T>>,
     /// The unique runtime Id of this node.
     id: usize,
-    /// A type representing the function used to update the value of this
-    /// node. This is only called if the dependencies appear to have changed.
+    /// Phantom data to hold the type of the operation.
     phantom: PhantomData<F>,
 }
 
-impl<D, F, T> DerivedNode<D, F, T>
+impl<D, T, F> DerivedNode<D, T, F>
 where
     for<'a> D: Resolve + IsDirtyInferenceWorkaround<'a> + 'a,
-    for<'a> F: UpdateDerived<
-            Input<'a> = <D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround,
-            Target<'a> = RefMut<'a, NodeState<T>>,
-        > + 'a,
+    for<'a> T: UpdateDerived<<D as Resolve>::Output<'a>, F> + 'a,
     T: HashValue + Clean + Named,
+    F: Named,
 {
     /// Construct this node.
-    pub fn new(dependencies: D, update: F, value: T) -> Rc<Self> {
-        Self::new_with_id(dependencies, update, value, next_node_id())
+    pub fn new(dependencies: D, operation: F, value: T) -> Rc<Self> {
+        Self::new_with_id(dependencies, operation, value, next_node_id())
     }
 
     /// Create this node with a specified Id. Useful for tests.
@@ -140,23 +131,24 @@ where
         //  take a &self so that values can be provided for update fns.
         Rc::new(Self {
             dependencies,
-            phantom: PhantomData::<F>,
             value: RefCell::new(NodeState::new(value)),
             id,
+            phantom: PhantomData,
         })
     }
 }
 
-impl<D, F, T> Resolve for DerivedNode<D, F, T>
+impl<D, T, F> Resolve for DerivedNode<D, T, F>
 where
     for<'a> D: Resolve + IsDirtyInferenceWorkaround<'a> + 'a,
-    for<'a> F: UpdateDerived<
-            Input<'a> = <D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround,
-            Target<'a> = RefMut<'a, NodeState<T>>,
-        > + 'a,
+    for<'a> T: UpdateDerived<<D as IsDirtyInferenceWorkaround<'a>>::OutputWorkaround, F>,
     T: HashValue + Clean + Named,
+    F: Named,
 {
-    type Output<'a> = Ref<'a, NodeState<T>> where Self: 'a ;
+    type Output<'a>
+        = Ref<'a, NodeState<T>>
+    where
+        Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> Result<Self::Output<'_>, ResolveError> {
         visitor.touch(self, Some(F::name()));
@@ -165,13 +157,15 @@ where
             node_state.clean();
             let input = self.dependencies.resolve_workaround(visitor)?;
             if input.is_dirty() {
-                F::update_derived(input, node_state)?;
+                // TODO: either keep this or remove the generic impl on nodeState
+                node_state.value_mut().update(input)?;
                 // TODO: I'm running in to lifetime issues passing a
                 //  &mut node_state above, which would prevent the need to
                 //  reborrow here. For some reason, a mutable reference
                 //  causes the borrow checker to want node_state to live
                 //  beyond the current block (presumably to match input),
                 //  whereas a shared reference does not.
+                drop(node_state);
                 let mut node_state = self.value.try_borrow_mut()?;
                 node_state.update_node_hash(&mut visitor.hasher());
                 visitor.notify_recalculated(self);
@@ -182,13 +176,13 @@ where
     }
 }
 
-impl<D, F, T: Named> Named for DerivedNode<D, F, T> {
+impl<D, T: Named, F> Named for DerivedNode<D, T, F> {
     fn name() -> &'static str {
         T::name()
     }
 }
 
-impl<D, F, T: Named> Identifiable for DerivedNode<D, F, T> {
+impl<D, T: Named, F> Identifiable for DerivedNode<D, T, F> {
     fn id(&self) -> usize {
         self.id
     }
@@ -199,7 +193,7 @@ mod hrtb_workaround {
 
     /// If we just provide the constraint
     /// ``` text
-    /// impl<D, F, T> Resolve for DerivedNode<D, F, T>
+    /// impl<D, T> Resolve for DerivedNode<D, T>
     /// where
     ///     D: Resolve,
     ///     for<'a> <D as Resolve>::Output<'a>: IsDirty

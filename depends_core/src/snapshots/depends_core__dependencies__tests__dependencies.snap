@@ -73,7 +73,10 @@ where
     for<'a> C:
         ::depends::Resolve<Output<'a> = ::std::cell::Ref<'a, ::depends::NodeState<Node3>>> + 'a,
 {
-    type Output < 'a > = ComponentsRef < 'a > where Self : 'a ;
+    type Output<'a>
+        = ComponentsRef<'a>
+    where
+        Self: 'a;
 
     fn resolve(
         &self,

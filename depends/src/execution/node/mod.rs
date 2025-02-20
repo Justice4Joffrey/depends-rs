@@ -1,5 +1,5 @@
 mod node_hash;
-mod node_ref;
+pub mod node_ref;
 mod node_state;
 
 pub use node_hash::NodeHash;

@@ -1,4 +1,4 @@
-use depends::{derives::Value, SingleRef, TargetMut, UpdateDerived, UpdateInput};
+use depends::{derives::Value, DepRef, UpdateDerived, UpdateInput};
 use serial_test::serial;
 
 #[rustfmt::skip]
@@ -28,18 +28,9 @@ use depends::{derives::Operation, error::EarlyExit};
 #[derive(Operation)]
 pub struct Square;
 
-impl UpdateDerived for Square {
-    // `SingleRef` is short-hand for a shared reference to a single
-    // dependency of type `SomeNumber`.
-    type Input<'a> = SingleRef<'a, SomeNumber>;
-    // `TargetMut` is short-hand for a mutable reference to `SomeNumber`.
-    type Target<'a> = TargetMut<'a, SomeNumber>;
-
-    fn update_derived(
-        input: Self::Input<'_>,
-        mut target: Self::Target<'_>,
-    ) -> Result<(), EarlyExit> {
-        target.value = input.value.pow(2);
+impl UpdateDerived<DepRef<'_, SomeNumber>, Square> for SomeNumber {
+    fn update(&mut self, deps: DepRef<'_, SomeNumber>) -> Result<(), EarlyExit> {
+        self.value = deps.value.pow(2);
         Ok(())
     }
 }

@@ -1,21 +1,18 @@
-mod dep_ref;
 mod dep_state;
+mod dependency_edge;
+mod impls;
 
-use std::{
-    cell::{Ref, RefCell},
-    rc::Rc,
-};
+use std::cell::{Ref, RefCell};
 
-pub use dep_ref::DepRef;
 pub use dep_state::DependencyState;
+pub use dependency_edge::DependencyEdge;
+pub use impls::*;
 
 use super::{HashValue, NodeHash, Resolve};
 use crate::execution::{error::ResolveResult, NodeState, Visitor};
 
 /// Short-hand for a reference to a single dependency.
-pub type SingleRef<'a, T> = DepRef<'a, Ref<'a, NodeState<T>>>;
-/// Short-hand for a single dependency type.
-pub type SingleDep<T> = Dependency<Rc<T>>;
+pub type DepRef<'a, T> = DependencyEdge<'a, Ref<'a, NodeState<T>>>;
 
 /// Wraps a dependency and tracks the hashed value each time it's resolved. This
 /// allows the resolver to know if a dependency is 'dirty' from the perspective
@@ -31,6 +28,7 @@ pub struct Dependency<T> {
 impl<T> Dependency<T>
 where
     T: Resolve,
+    for<'a> <T as Resolve>::Output<'a>: HashValue,
 {
     pub fn new(dependency: T) -> Self {
         Self {
@@ -46,7 +44,7 @@ where
     for<'a> <T as Resolve>::Output<'a>: HashValue,
 {
     type Output<'a>
-        = DepRef<'a, T::Output<'a>>
+        = DependencyEdge<'a, T::Output<'a>>
     where
         Self: 'a;
 
@@ -55,16 +53,18 @@ where
         let data = self.dependency.resolve(visitor)?;
         let current_state = data.hash_value(&mut visitor.hasher());
         if last_state.map(|s| s == current_state).unwrap_or(false) {
-            Ok(DepRef::new(DependencyState::Clean, data))
+            Ok(DependencyEdge::new(DependencyState::Clean, data))
         } else {
-            (*last_state) = Some(current_state);
-            Ok(DepRef::new(DependencyState::Dirty, data))
+            *last_state = Some(current_state);
+            Ok(DependencyEdge::new(DependencyState::Dirty, data))
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use serial_test::serial;
 
     use super::*;
