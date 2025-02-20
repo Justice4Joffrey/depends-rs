@@ -1,15 +1,15 @@
 error: More than one root node: comments_posts, likes_friends.
- --> tests/fail/derive/graph/multiple_roots.rs:6:10
+ --> tests/fail/derive/graph/multiple_roots.rs:7:10
   |
-6 | #[derive(Graph)]
+7 | #[derive(Graph)]
   |          ^^^^^
   |
   = note: this error originates in the derive macro `Graph` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: More than one root node: comments_likes, comments_posts.
-  --> tests/fail/derive/graph/multiple_roots.rs:26:10
+  --> tests/fail/derive/graph/multiple_roots.rs:27:10
    |
-26 | #[derive(Graph)]
+27 | #[derive(Graph)]
    |          ^^^^^
    |
    = note: this error originates in the derive macro `Graph` (in Nightly builds, run with -Z macro-backtrace for more info)

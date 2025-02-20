@@ -17,6 +17,14 @@ pub struct Comments {
 }
 
 impl Comments {
+    pub fn new() -> Self {
+        Self {
+            comments: HashMap::with_capacity(512),
+            new_comment_ids: Vec::with_capacity(512),
+            generation: 0,
+        }
+    }
+
     /// An iterator over all comments that have been added since the last
     /// generation.
     pub fn new_comments(&self) -> impl Iterator<Item = &Comment> + '_ {

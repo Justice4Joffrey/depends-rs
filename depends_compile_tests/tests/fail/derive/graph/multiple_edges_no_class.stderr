@@ -1,5 +1,5 @@
 error: Multiple incoming edges but no `class` attribute.
-  --> tests/fail/derive/graph/multiple_edges_no_class.rs:11:24
+  --> tests/fail/derive/graph/multiple_edges_no_class.rs:12:24
    |
-11 |         comments_posts [label="CommentsPosts"];
+12 |         comments_posts [label="CommentsPosts"];
    |                        ^^^^^^^^^^^^^^^^^^^^^^^

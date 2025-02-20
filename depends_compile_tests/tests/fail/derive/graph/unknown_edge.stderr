@@ -1,5 +1,5 @@
 error: Unknown node.
-  --> tests/fail/derive/graph/unknown_edge.rs:15:9
+  --> tests/fail/derive/graph/unknown_edge.rs:16:9
    |
-15 |         likes -> comments_posts [label="TrackLikeFriendIds"];
+16 |         likes -> comments_posts [label="TrackLikeFriendIds"];
    |         ^^^^^

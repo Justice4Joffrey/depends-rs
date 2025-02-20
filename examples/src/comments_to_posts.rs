@@ -1,7 +1,7 @@
 use depends::{
     derives::{Operation, Value},
     error::EarlyExit,
-    SingleRef, TargetMut, UpdateDerived,
+    DepRef, UpdateDerived,
 };
 use hashbrown::HashMap;
 
@@ -26,6 +26,13 @@ pub struct CommentsToPosts {
 }
 
 impl CommentsToPosts {
+    pub fn new() -> Self {
+        Self {
+            comments_to_posts: HashMap::with_capacity(512),
+            len: 0,
+        }
+    }
+
     pub fn get_post_id(&self, comment_id: i64) -> Result<i64, EarlyExit> {
         self.comments_to_posts
             .get(&comment_id)
@@ -37,27 +44,17 @@ impl CommentsToPosts {
 #[derive(Operation)]
 pub struct TrackCommentPostIds;
 
-impl UpdateDerived for TrackCommentPostIds {
-    type Input<'a> = SingleRef<'a, Comments>
-    where
-        Self: 'a;
-    type Target<'a> = TargetMut<'a, CommentsToPosts>
-    where
-        Self: 'a;
-
-    fn update_derived(
-        comments: Self::Input<'_>,
-        mut target: Self::Target<'_>,
-    ) -> Result<(), EarlyExit> {
-        for comment in comments.new_comments() {
-            let post_id = if let Some(post_id) = target.comments_to_posts.get(&comment.parent_id) {
+impl UpdateDerived<DepRef<'_, Comments>, TrackCommentPostIds> for CommentsToPosts {
+    fn update(&mut self, value: DepRef<'_, Comments>) -> Result<(), EarlyExit> {
+        for comment in value.new_comments() {
+            let post_id = if let Some(post_id) = self.comments_to_posts.get(&comment.parent_id) {
                 *post_id
             } else {
                 comment.parent_id
             };
-            target.comments_to_posts.insert(comment.id, post_id);
+            self.comments_to_posts.insert(comment.id, post_id);
         }
-        target.len = target.comments_to_posts.len();
+        self.len = self.comments_to_posts.len();
         Ok(())
     }
 }

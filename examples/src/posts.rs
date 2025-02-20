@@ -17,6 +17,14 @@ pub struct Posts {
 }
 
 impl Posts {
+    pub fn new() -> Self {
+        Self {
+            posts: HashMap::with_capacity(512),
+            new_post_ids: Vec::with_capacity(512),
+            generation: 0,
+        }
+    }
+
     /// An iterator over all posts that have been added since the last
     /// generation.
     pub fn new_posts(&self) -> impl Iterator<Item = &Post> + '_ {

@@ -2,7 +2,9 @@ use std::{cell::Ref, path::Path};
 
 use benches::{read_csv_file, read_csv_update, Phase, SocialNetworkConfig};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use depends::{derives::Graph, error::ResolveResult, GraphCreate, NodeState, Resolve, Visitor};
+use depends::{
+    derives::Graph, error::ResolveResult, Dependencies4, GraphCreate, NodeState, Resolve, Visitor,
+};
 use envconfig::Envconfig;
 use examples::{models::*, *};
 use hashbrown::HashSet;
@@ -16,10 +18,10 @@ use hashbrown::HashSet;
         comment_to_posts [label="CommentsToPosts"];
         comments -> comment_to_posts [label="TrackCommentPostIds"];
         query [label="PostScoresQuery"];
-        comments -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
-        comment_to_posts -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
-        posts -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
-        likes -> query [label="UpdatePostScoresQuery", class="CommentsPostsLikesDep"];
+        comments -> query [label="UpdatePostScoresQuery", class="Dependencies4"];
+        comment_to_posts -> query [label="UpdatePostScoresQuery", class="Dependencies4"];
+        posts -> query [label="UpdatePostScoresQuery", class="Dependencies4"];
+        likes -> query [label="UpdatePostScoresQuery", class="Dependencies4"];
     }
 )]
 struct Foo {}
@@ -63,7 +65,10 @@ impl<R> Resolve for GraphOuter<R>
 where
     for<'a> R: Resolve<Output<'a> = Ref<'a, NodeState<PostScoresQuery>>> + 'a,
 {
-    type Output<'a> = <R as Resolve>::Output<'a> where Self: 'a;
+    type Output<'a>
+        = <R as Resolve>::Output<'a>
+    where
+        Self: 'a;
 
     fn resolve(&self, visitor: &mut impl Visitor) -> ResolveResult<Self::Output<'_>> {
         self.0.resolve(visitor)
@@ -148,15 +153,15 @@ fn load_data(
     InputBatch,
 ) {
     let graph = GraphOuter(Foo::create_dag(
-        Comments::default(),
-        Likes::default(),
-        Posts::default(),
-        CommentsToPosts::default(),
-        PostScoresQuery::default(),
+        Comments::new(),
+        Likes::new(),
+        Posts::new(),
+        CommentsToPosts::new(),
+        PostScoresQuery::new(),
     ));
     let mut init_visitor = HashSet::new();
     input_batch.initialise_to_phase(&graph, &mut init_visitor, phase);
-    let visitor = HashSet::<usize>::with_capacity(4);
+    let visitor = HashSet::<usize>::with_capacity(5);
     (visitor, graph, input_batch)
 }
 
@@ -212,5 +217,13 @@ fn criterion_benchmark(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, criterion_benchmark);
+fn configure_criterion() -> Criterion {
+    Criterion::default().configure_from_args().sample_size(500)
+}
+
+criterion_group!(
+    name = benches;
+    config = configure_criterion();
+    targets = criterion_benchmark
+);
 criterion_main!(benches);

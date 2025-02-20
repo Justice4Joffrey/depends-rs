@@ -1,7 +1,0 @@
-error: Dependencies only supports structs with up to 26 fields.
- --> tests/fail/derive/dependencies/more_than_26_fields.rs:3:10
-  |
-3 | #[derive(Dependencies)]
-  |          ^^^^^^^^^^^^
-  |
-  = note: this error originates in the derive macro `Dependencies` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -170,7 +170,7 @@ fn derived_node_create(derived: &DerivedNodeDef) -> (TokenStream, Ident, Ident) 
     let deps_init = if let Some(dep_type) = derived.dependency_type.as_ref() {
         quote! {
             {
-                let d: #dep_type< #generics > = (#(::std::rc::Rc::clone(& #deps)),*).into();
+                let d = #dep_type::< #generics >::new(#(::std::rc::Rc::clone(& #deps)),*);
                 d
             }
         }
@@ -212,10 +212,10 @@ mod tests {
                    node_3 [label="CommentsToPosts"];
                    node_0 -> node_3 [label="CommentPostIds"];
                    node_4 [label="PostScoresQuery"];
-                   node_0 -> node_4 [label="UpdatePostScoresQuery", class="Update"];
-                   node_1 -> node_4 [label="UpdatePostScoresQuery", class="Update"];
-                   node_2 -> node_4 [label="UpdatePostScoresQuery", class="Update"];
-                   node_3 -> node_4 [label="UpdatePostScoresQuery", class="Update"];
+                   node_0 -> node_4 [label="UpdatePostScoresQuery", class="Dependencies4"];
+                   node_1 -> node_4 [label="UpdatePostScoresQuery", class="Dependencies4"];
+                   node_2 -> node_4 [label="UpdatePostScoresQuery", class="Dependencies4"];
+                   node_3 -> node_4 [label="UpdatePostScoresQuery", class="Dependencies4"];
                 }
             )]
             struct Components {

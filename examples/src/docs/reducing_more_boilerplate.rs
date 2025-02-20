@@ -1,4 +1,4 @@
-use depends::derives::Graph;
+use depends::{derives::Graph, *};
 use serial_test::serial;
 
 use crate::docs::{multiple_dependencies::*, raising_the_stakes::*, simple_value::*};
@@ -15,24 +15,24 @@ use crate::docs::{multiple_dependencies::*, raising_the_stakes::*, simple_value:
         d [label="SomeNumber"];
         e [label="SomeNumber"];
         a_times_b [label="SomeNumber"];
-        a -> a_times_b [label="Multiply", class="TwoNumbersDep"];
-        b -> a_times_b [label="Multiply", class="TwoNumbersDep"];
+        a -> a_times_b [label="Multiply", class="Dependencies2"];
+        b -> a_times_b [label="Multiply", class="Dependencies2"];
         d_minus_c [label="SomeNumber"];
-        d -> d_minus_c [label="Subtract", class="TwoNumbersDep"];
-        c -> d_minus_c [label="Subtract", class="TwoNumbersDep"];
+        d -> d_minus_c [label="Subtract", class="Dependencies2"];
+        c -> d_minus_c [label="Subtract", class="Dependencies2"];
         d_squared [label="SomeNumber"];
         d -> d_squared [label="Square"];
         e_squared [label="SomeNumber"];
         e -> e_squared [label="Square"];
         a_times_b_plus_c_minus_d [label="SomeNumber"];
-        a_times_b -> a_times_b_plus_c_minus_d [label="Add", class="TwoNumbersDep"];
-        d_minus_c -> a_times_b_plus_c_minus_d [label="Add", class="TwoNumbersDep"];
+        a_times_b -> a_times_b_plus_c_minus_d [label="Add", class="Dependencies2"];
+        d_minus_c -> a_times_b_plus_c_minus_d [label="Add", class="Dependencies2"];
         times_e_squared [label="SomeNumber"];
-        a_times_b_plus_c_minus_d -> times_e_squared [label="Multiply", class="TwoNumbersDep"];
-        e_squared -> times_e_squared [label="Multiply", class="TwoNumbersDep"];
+        a_times_b_plus_c_minus_d -> times_e_squared [label="Multiply", class="Dependencies2"];
+        e_squared -> times_e_squared [label="Multiply", class="Dependencies2"];
         minus_d_squared [label="SomeNumber"];
-        times_e_squared -> minus_d_squared [label="Subtract", class="TwoNumbersDep"];
-        d_squared -> minus_d_squared [label="Subtract", class="TwoNumbersDep"];
+        times_e_squared -> minus_d_squared [label="Subtract", class="Dependencies2"];
+        d_squared -> minus_d_squared [label="Subtract", class="Dependencies2"];
         cube_and_change_type [label="AnotherNumber"];
         minus_d_squared -> cube_and_change_type [label="Cube"];
     }

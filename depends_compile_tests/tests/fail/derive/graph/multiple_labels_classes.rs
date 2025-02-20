@@ -1,5 +1,6 @@
-use depends::derives::Graph;
-#[allow(unused_imports)]
+#![allow(unused_imports)]
+use depends::*;
+use depends::derives::*;
 use examples::*;
 
 // Multiple labels for an edge.
@@ -11,8 +12,8 @@ use examples::*;
 
         comments_posts [label="CommentsPosts"];
 
-        comments -> comments_posts [label="TrackCommentPostIds", class="CommentTracker"];
-        posts -> comments_posts [label="AnotherLabel", class="CommentTracker"];
+        comments -> comments_posts [label="TrackCommentPostIds", class="Dependencies2"];
+        posts -> comments_posts [label="AnotherLabel", class="Dependencies2"];
     }
 )]
 struct Graph1 {}
@@ -26,8 +27,8 @@ struct Graph1 {}
 
         comments_posts [label="CommentsPosts"];
 
-        comments -> comments_posts [label="TrackCommentPostIds", class="CommentTracker"];
-        posts -> comments_posts [label="TrackCommentPostIds", class="AnotherClass"];
+        comments -> comments_posts [label="TrackCommentPostIds", class="Dependencies3"];
+        posts -> comments_posts [label="TrackCommentPostIds", class="Dependencies2"];
     }
 )]
 struct Graph2 {}

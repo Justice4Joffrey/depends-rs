@@ -15,8 +15,8 @@ mod update_input;
 mod visitor;
 
 pub use clean::Clean;
-pub use dependency::{DepRef, Dependency, SingleDep, SingleRef};
-pub use derived::{DerivedNode, TargetMut};
+pub use dependency::*;
+pub use derived::DerivedNode;
 pub use hash_value::HashValue;
 pub use identifiable::{next_node_id, Identifiable};
 pub use input::{InputNode, InputState};

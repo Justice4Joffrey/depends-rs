@@ -36,7 +36,7 @@ Using that in practice then becomes:
 {{#include ../../examples/src/docs/raising_the_stakes.rs:init_impl_trait}}
 ```
 
-> Note we can't _create_ the graph inside one of its methods, as it must be able to _infer_ a generic paramter `R` from
+> Note we can't _create_ the graph inside one of its methods, as it must be able to _infer_ a generic parameter `R` from
 > the arguments provided. A helper function
 >
 > `fn create_graph(...) -> Graph<impl Resolve<...>>`

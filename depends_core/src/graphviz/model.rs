@@ -298,9 +298,7 @@ impl TryFrom<ParsedGraphvizModel> for GraphvizGraph {
                 None => inputs.push(node_def),
             }
         }
-        let root = if let Some(node) = derived.last().cloned() {
-            node
-        } else {
+        if derived.last().cloned().is_none() {
             // This should never happen because we checked that the graph is
             // connected.
             return Err(syn::Error::new(
@@ -311,7 +309,6 @@ impl TryFrom<ParsedGraphvizModel> for GraphvizGraph {
 
         Ok(GraphvizGraph {
             name: Ident::new(&value.name, Span::call_site()),
-            root,
             inputs,
             derived,
         })

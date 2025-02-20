@@ -5,10 +5,10 @@ use serial_test::serial;
 #[rustfmt::skip]
 fn test_resolve_graph() {
 use std::rc::Rc;
-use depends::{graphviz::GraphvizVisitor, DerivedNode, InputNode, Resolve};
+use depends::{graphviz::GraphvizVisitor, *};
 use depends::test_utils::ext_reset_node_id;
 use crate::docs::{
-    multiple_dependencies::{Multiply, TwoNumbers},
+    multiple_dependencies::Multiply,
     simple_value::SomeNumber,
 };
 unsafe {
@@ -20,7 +20,7 @@ let input_2 = InputNode::new(SomeNumber { value: 7 });
 
 // Derived is the root node of this graph.
 let derived = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&input_1), Rc::clone(&input_2)),
+    Dependencies2::new(Rc::clone(&input_1), Rc::clone(&input_2)),
     Multiply,
     SomeNumber::default(),
 );
@@ -57,8 +57,8 @@ digraph Dag {
   node_0 [label="SomeNumber"];
   node_1 [label="SomeNumber"];
   node_2 [label="SomeNumber"];
-  node_0 -> node_2 [label="Multiply", class="TwoNumbersDep"];
-  node_1 -> node_2 [label="Multiply", class="TwoNumbersDep"];
+  node_0 -> node_2 [label="Multiply", class="Dependencies2"];
+  node_1 -> node_2 [label="Multiply", class="Dependencies2"];
 }
 "#
     .trim()

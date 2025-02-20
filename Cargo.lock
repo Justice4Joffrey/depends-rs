@@ -82,7 +82,6 @@ dependencies = [
  "envconfig",
  "examples",
  "hashbrown 0.14.0",
- "regex",
  "serde",
 ]
 
@@ -337,6 +336,7 @@ dependencies = [
  "ahash",
  "depends_derives",
  "hashbrown 0.14.0",
+ "paste",
  "serial_test",
  "thiserror",
 ]
@@ -372,6 +372,7 @@ name = "depends_tests"
 version = "0.0.0"
 dependencies = [
  "depends",
+ "examples",
 ]
 
 [[package]]
@@ -756,6 +757,12 @@ dependencies = [
  "smallvec",
  "windows-targets 0.48.1",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "petgraph"

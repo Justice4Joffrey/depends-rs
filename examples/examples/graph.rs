@@ -1,10 +1,7 @@
 use std::collections::HashSet;
 
-use depends::{derives::Graph, Resolve};
-
-use crate::maths::*;
-
-mod maths;
+use depends::{derives::Graph, Dependencies2, Dependencies3, Resolve};
+use examples::maths::{NumberValueI32, NumberValueI8, *};
 
 // Connecting graph nodes and tracking the complex types can be tedious!
 // Fortunately, we can auto-generate some of the boilerplate using the
@@ -18,26 +15,26 @@ mod maths;
 #[derive(Graph)]
 #[depends(
     digraph MyDag {
-        node_0 [label="NumberValue"];
-        node_1 [label="NumberValue"];
-        node_2 [label="OtherNumberValue"];
-        node_3 [label="NumberValue"];
-        node_4 [label="NumberValue"];
-        node_5 [label="NumberValue"];
+        node_0 [label="NumberValueI32"];
+        node_1 [label="NumberValueI32"];
+        node_2 [label="NumberValueI8"];
+        node_3 [label="NumberValueI32"];
+        node_4 [label="NumberValueI32"];
+        node_5 [label="NumberValueI32"];
         node_2 -> node_5 [label="Square"];
-        node_6 [label="NumberValue"];
-        node_0 -> node_6 [label="Add", class="TwoNumbersDep"];
-        node_1 -> node_6 [label="Add", class="TwoNumbersDep"];
-        node_7 [label="NumberValue"];
-        node_3 -> node_7 [label="Multiply", class="TwoNumbersDep"];
-        node_4 -> node_7 [label="Multiply", class="TwoNumbersDep"];
-        node_8 [label="NumberValue"];
-        node_0 -> node_8 [label="Add", class="TwoNumbersDep"];
-        node_7 -> node_8 [label="Add", class="TwoNumbersDep"];
-        node_9 [label="NumberValue"];
-        node_5 -> node_9 [label="AddThree", class="ThreeNumbersDep"];
-        node_6 -> node_9 [label="AddThree", class="ThreeNumbersDep"];
-        node_8 -> node_9 [label="AddThree", class="ThreeNumbersDep"];
+        node_6 [label="NumberValueI32"];
+        node_0 -> node_6 [label="Sum", class="Dependencies2"];
+        node_1 -> node_6 [label="Sum", class="Dependencies2"];
+        node_7 [label="NumberValueI32"];
+        node_3 -> node_7 [label="Multiply", class="Dependencies2"];
+        node_4 -> node_7 [label="Multiply", class="Dependencies2"];
+        node_8 [label="NumberValueI32"];
+        node_0 -> node_8 [label="Sum", class="Dependencies2"];
+        node_7 -> node_8 [label="Sum", class="Dependencies2"];
+        node_9 [label="NumberValueI32"];
+        node_5 -> node_9 [label="Sum", class="Dependencies3"];
+        node_6 -> node_9 [label="Sum", class="Dependencies3"];
+        node_8 -> node_9 [label="Sum", class="Dependencies3"];
     }
 )]
 struct GraphCreator {}
@@ -45,16 +42,16 @@ struct GraphCreator {}
 fn main() {
     // Provide initial values for all nodes.
     let graph = GraphCreator::create_my_dag(
-        NumberValue::new(4),
-        NumberValue::new(5),
-        NumberValue::new(1),
-        NumberValue::new(2),
-        OtherNumberValue::new(3),
-        NumberValue::default(),
-        NumberValue::default(),
-        NumberValue::default(),
-        NumberValue::default(),
-        NumberValue::default(),
+        NumberValueI32::new(4),
+        NumberValueI32::new(5),
+        NumberValueI32::new(1),
+        NumberValueI32::new(2),
+        NumberValueI8::new(3),
+        NumberValueI32::default(),
+        NumberValueI32::default(),
+        NumberValueI32::default(),
+        NumberValueI32::default(),
+        NumberValueI32::default(),
     );
 
     let mut visitor = HashSet::<usize>::new();

@@ -1,24 +1,18 @@
 use depends::{
     derives::{Operation, Value},
     error::EarlyExit,
-    SingleRef, TargetMut, UpdateDerived,
+    DepRef, DepRef2, UpdateDerived,
 };
 use serial_test::serial;
 
-use crate::docs::{multiple_dependencies::TwoNumbersRef, simple_value::SomeNumber};
+use crate::docs::simple_value::SomeNumber;
 
 #[derive(Operation)]
 pub struct Add;
 
-impl UpdateDerived for Add {
-    type Input<'a> = TwoNumbersRef<'a> where Self: 'a;
-    type Target<'a> = TargetMut<'a, SomeNumber> where Self: 'a;
-
-    fn update_derived(
-        TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-        mut target: TargetMut<'_, SomeNumber>,
-    ) -> Result<(), EarlyExit> {
-        target.value = left.value + right.value;
+impl UpdateDerived<DepRef2<'_, SomeNumber, SomeNumber>, Add> for SomeNumber {
+    fn update(&mut self, deps: DepRef2<'_, SomeNumber, SomeNumber>) -> Result<(), EarlyExit> {
+        self.value = deps.0.value + deps.1.value;
         Ok(())
     }
 }
@@ -26,15 +20,9 @@ impl UpdateDerived for Add {
 #[derive(Operation)]
 pub struct Subtract;
 
-impl UpdateDerived for Subtract {
-    type Input<'a> = TwoNumbersRef<'a> where Self: 'a;
-    type Target<'a> = TargetMut<'a, SomeNumber> where Self: 'a;
-
-    fn update_derived(
-        TwoNumbersRef { left, right }: TwoNumbersRef<'_>,
-        mut target: TargetMut<'_, SomeNumber>,
-    ) -> Result<(), EarlyExit> {
-        target.value = left.value - right.value;
+impl UpdateDerived<DepRef2<'_, SomeNumber, SomeNumber>, Subtract> for SomeNumber {
+    fn update(&mut self, deps: DepRef2<'_, SomeNumber, SomeNumber>) -> Result<(), EarlyExit> {
+        self.value = deps.0.value - deps.1.value;
         Ok(())
     }
 }
@@ -47,16 +35,9 @@ pub struct AnotherNumber {
 #[derive(Operation)]
 pub struct Cube;
 
-impl UpdateDerived for Cube {
-    type Input<'a> = SingleRef<'a, SomeNumber> where Self: 'a;
-    type Target<'a> = TargetMut<'a, AnotherNumber> where Self: 'a;
-
-    fn update_derived(
-        input: Self::Input<'_>,
-        mut target: TargetMut<'_, AnotherNumber>,
-    ) -> Result<(), EarlyExit> {
-        let value = input.value.pow(3);
-        target.value = value as i64;
+impl UpdateDerived<DepRef<'_, SomeNumber>, Cube> for AnotherNumber {
+    fn update(&mut self, deps: DepRef<'_, SomeNumber>) -> Result<(), EarlyExit> {
+        self.value = deps.value.pow(3) as i64;
         Ok(())
     }
 }
@@ -65,11 +46,11 @@ impl UpdateDerived for Cube {
 #[test]
 #[rustfmt::skip]
 fn test_resolve_graph() {
-use super::multiple_dependencies::{Multiply, TwoNumbers, TwoNumbersDep};
+use super::multiple_dependencies::Multiply;
 use super::simple_value::Square;
 use depends::test_utils::{ext_reset_node_id, DiagnosticVisitor};
 use depends::{
-    graphviz::GraphvizVisitor, Dependency, DerivedNode, InputNode, NodeRef, Resolve, Visitor,
+    graphviz::GraphvizVisitor, *
 };
 use std::rc::Rc;
 unsafe {
@@ -84,13 +65,13 @@ let d = InputNode::new(SomeNumber { value: 4 });
 let e = InputNode::new(SomeNumber { value: 2 });
 
 let a_times_b = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
+    Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
     Multiply,
     SomeNumber::default(),
 );
 
 let d_minus_c = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&d), Rc::clone(&c)),
+    Dependencies2::new(Rc::clone(&d), Rc::clone(&c)),
     Subtract,
     SomeNumber::default(),
 );
@@ -109,19 +90,19 @@ let e_squared = DerivedNode::new(
 );
 
 let a_times_b_plus_c_minus_d = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&a_times_b), Rc::clone(&d_minus_c)),
+    Dependencies2::new(Rc::clone(&a_times_b), Rc::clone(&d_minus_c)),
     Add,
     SomeNumber::default(),
 );
 
 let times_e_squared = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&a_times_b_plus_c_minus_d), Rc::clone(&e_squared)),
+    Dependencies2::new(Rc::clone(&a_times_b_plus_c_minus_d), Rc::clone(&e_squared)),
     Multiply,
     SomeNumber::default(),
 );
 
 let minus_d_squared = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&times_e_squared), Rc::clone(&d_squared)),
+    Dependencies2::new(Rc::clone(&times_e_squared), Rc::clone(&d_squared)),
     // Check out the `examples` directory to see the implementation of
     // these new operations.
     Subtract,
@@ -198,24 +179,24 @@ digraph Dag {
   node_3 [label="SomeNumber"];
   node_4 [label="SomeNumber"];
   node_5 [label="SomeNumber"];
-  node_0 -> node_5 [label="Multiply", class="TwoNumbersDep"];
-  node_1 -> node_5 [label="Multiply", class="TwoNumbersDep"];
+  node_0 -> node_5 [label="Multiply", class="Dependencies2"];
+  node_1 -> node_5 [label="Multiply", class="Dependencies2"];
   node_6 [label="SomeNumber"];
-  node_3 -> node_6 [label="Subtract", class="TwoNumbersDep"];
-  node_2 -> node_6 [label="Subtract", class="TwoNumbersDep"];
+  node_3 -> node_6 [label="Subtract", class="Dependencies2"];
+  node_2 -> node_6 [label="Subtract", class="Dependencies2"];
   node_7 [label="SomeNumber"];
   node_3 -> node_7 [label="Square"];
   node_8 [label="SomeNumber"];
   node_4 -> node_8 [label="Square"];
   node_9 [label="SomeNumber"];
-  node_5 -> node_9 [label="Add", class="TwoNumbersDep"];
-  node_6 -> node_9 [label="Add", class="TwoNumbersDep"];
+  node_5 -> node_9 [label="Add", class="Dependencies2"];
+  node_6 -> node_9 [label="Add", class="Dependencies2"];
   node_10 [label="SomeNumber"];
-  node_9 -> node_10 [label="Multiply", class="TwoNumbersDep"];
-  node_8 -> node_10 [label="Multiply", class="TwoNumbersDep"];
+  node_9 -> node_10 [label="Multiply", class="Dependencies2"];
+  node_8 -> node_10 [label="Multiply", class="Dependencies2"];
   node_11 [label="SomeNumber"];
-  node_10 -> node_11 [label="Subtract", class="TwoNumbersDep"];
-  node_7 -> node_11 [label="Subtract", class="TwoNumbersDep"];
+  node_10 -> node_11 [label="Subtract", class="Dependencies2"];
+  node_7 -> node_11 [label="Subtract", class="Dependencies2"];
   node_12 [label="AnotherNumber"];
   node_11 -> node_12 [label="Cube"];
 }
@@ -225,6 +206,7 @@ digraph Dag {
 
     #[allow(unused)]
     struct GraphRoot {
+        #[allow(clippy::type_complexity)]
         root:
 // ANCHOR: reducing_boilerplate
 // Oh dear lord...
@@ -233,50 +215,65 @@ Rc<
         Dependency<
             Rc<
                 DerivedNode<
-                    TwoNumbersDep<
-                        DerivedNode<
-                            TwoNumbersDep<
-                                DerivedNode<
-                                    TwoNumbersDep<
+                    Dependencies2<
+                        Rc<
+                            DerivedNode<
+                                Dependencies2<
+                                    Rc<
                                         DerivedNode<
-                                            TwoNumbersDep<
-                                                InputNode<SomeNumber>,
-                                                InputNode<SomeNumber>,
+                                            Dependencies2<
+                                                Rc<
+                                                    DerivedNode<
+                                                        Dependencies2<
+                                                            Rc<InputNode<SomeNumber>>,
+                                                            Rc<InputNode<SomeNumber>>,
+                                                        >,
+                                                        SomeNumber,
+                                                        Multiply,
+                                                    >,
+                                                >,
+                                                Rc<
+                                                    DerivedNode<
+                                                        Dependencies2<
+                                                            Rc<InputNode<SomeNumber>>,
+                                                            Rc<InputNode<SomeNumber>>,
+                                                        >,
+                                                        SomeNumber,
+                                                        Subtract,
+                                                    >,
+                                                >,
                                             >,
-                                            Multiply,
                                             SomeNumber,
-                                        >,
-                                        DerivedNode<
-                                            TwoNumbersDep<
-                                                InputNode<SomeNumber>,
-                                                InputNode<SomeNumber>,
-                                            >,
-                                            Subtract,
-                                            SomeNumber,
+                                            Add,
                                         >,
                                     >,
-                                    Add,
-                                    SomeNumber,
+                                    Rc<
+                                        DerivedNode<
+                                            Dependency<Rc<InputNode<SomeNumber>>>,
+                                            SomeNumber,
+                                            Square,
+                                        >,
+                                    >,
                                 >,
-                                DerivedNode<
-                                    Dependency<Rc<InputNode<SomeNumber>>>,
-                                    Square,
-                                    SomeNumber,
-                                >,
+                                SomeNumber,
+                                Multiply,
                             >,
-                            Multiply,
-                            SomeNumber,
                         >,
-                        // Even rustfmt gave up on us!
-                        DerivedNode<Dependency<Rc<InputNode<SomeNumber>>>, Square, SomeNumber>,
+                        Rc<
+                            DerivedNode<
+                                Dependency<Rc<InputNode<SomeNumber>>>,
+                                SomeNumber,
+                                Square,
+                            >,
+                        >,
                     >,
-                    Subtract,
                     SomeNumber,
+                    Subtract,
                 >,
             >,
         >,
-        Cube,
         AnotherNumber,
+        Cube,
     >,
 >
 // ANCHOR_END: reducing_boilerplate

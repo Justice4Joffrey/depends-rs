@@ -1,5 +1,6 @@
-use depends::derives::Graph;
-#[allow(unused_imports)]
+#![allow(unused_imports)]
+use depends::*;
+use depends::derives::*;
 use examples::*;
 
 // Two disconnected graphs.

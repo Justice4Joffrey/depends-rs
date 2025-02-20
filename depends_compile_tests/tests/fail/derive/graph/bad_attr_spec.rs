@@ -1,5 +1,6 @@
-use depends::derives::Graph;
-#[allow(unused_imports)]
+#![allow(unused_imports)]
+use depends::*;
+use depends::derives::*;
 use examples::*;
 
 #[derive(Graph)]
@@ -17,7 +18,7 @@ struct Graph1 {}
         digraph Dag {
         comment [label="Comments"];
         comment_to_post [label="CommentsToPosts"];
-        comment -> comment_to_post [class="TrackCommentPostIds"];
+        comment -> comment_to_post [class="Dependencies2"];
     }
 )]
 struct Graph2 {}
