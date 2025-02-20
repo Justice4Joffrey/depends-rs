@@ -29,8 +29,7 @@ let b = InputNode::new(6_i32);
 
 // Derived nodes take their value from other nodes (either input or
 // derived). Note that we can combine _any_ type of node, providing
-// they're compatible with the dependencies (`TwoNumbers`) and operation
-// (`Multiply`).
+// we've defined an operation (Multiply) for a set of dependencies (Dependencies2).
 let c = DerivedNode::new(
     Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
     Multiply,
