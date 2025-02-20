@@ -32,7 +32,7 @@ let b = InputNode::new(6_i32);
 // they're compatible with the dependencies (`TwoNumbers`) and operation
 // (`Multiply`).
 let c = DerivedNode::new(
-    TwoNumbers::init(Rc::clone(&a), Rc::clone(&b)),
+    Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
     Multiply,
     0_i64,
 );

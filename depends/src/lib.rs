@@ -55,7 +55,7 @@
 //!
 //! // Derived nodes take their value from other nodes (either input or
 //! // derived). Note that we can combine _any_ type of node, providing
-//! // they're compatible with the dependencies (`TwoNumbers`) and operation
+//! // they're compatible with the two dependencies and operation
 //! // (`Multiply`).
 //! let c = DerivedNode::new(
 //!     Dependencies2::new(Rc::clone(&a), Rc::clone(&b)),
