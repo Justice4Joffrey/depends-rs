@@ -44,7 +44,7 @@ Updates.
 
 ![Alt text](./assets/top_posts_512_update.svg)
 
-Over the largest problem considered (512 - Updates), `depends` was able to resolve the query in under _35 microseconds_
+Over the largest problem considered (512 - Updates), `depends` was able to resolve the query in under _30 microseconds_
 on
 an AMD Ryzen 7 5800X 8-Core Processor. This is significantly faster than any recording in the study. The fastest on the
 study 'YAMTL Incremental' was recorded at
