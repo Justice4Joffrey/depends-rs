@@ -1,5 +1,5 @@
 [package]
-rust-version = "1.78.0"
+rust-version = "1.81.0"
 name = "depends_tests"
 version = "0.0.0"
 edition = "2021"
