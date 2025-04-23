@@ -1,5 +1,5 @@
 [package]
-rust-version = "1.78.0"
+rust-version = "1.81.0"
 name = "depends_core"
 license = "MIT"
 version = "0.11.0"
@@ -7,17 +7,17 @@ edition = "2021"
 description = "Ergonomic, performant, incremental computation between arbitrary types"
 
 [dependencies]
-petgraph = { version = "0.6.3", default-features = false, optional = true, features = [] }
+petgraph = { version = "0.8.1", default-features = false, optional = true, features = [] }
 proc-macro-error = "1.0.4"
-proc-macro2 = "1.0.59"
-quote = "1.0.28"
-thiserror = "1.0.43"
-syn = { version = "2.0.26", features = ["full"] }
+proc-macro2 = "1.0.95"
+quote = "1.0.40"
+thiserror = "2.0.12"
+syn = { version = "2.0.100", features = ["full"] }
 
 [dev-dependencies]
 colored-diff = "0.2.3"
-insta = "1.29.0"
-log = "0.4.19"
+insta = "1.42.2"
+log = "0.4.27"
 
 [features]
 default = []
