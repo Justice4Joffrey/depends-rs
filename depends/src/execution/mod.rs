@@ -26,7 +26,7 @@ pub use node::{NodeHash, NodeRef, NodeState};
 pub use resolve::Resolve;
 pub use update_derived::UpdateDerived;
 pub use update_input::UpdateInput;
-pub use visitor::{HashSetVisitor, Visitor};
+pub use visitor::{DiagnosticVisitor, HashSetVisitor, Visitor};
 
 #[cfg(feature = "graphviz")]
 mod graph_create;
