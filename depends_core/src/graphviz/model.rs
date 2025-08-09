@@ -22,7 +22,7 @@ pub struct ParsedGraphvizModel {
 
 impl ParsedGraphvizModel {
     fn edges_by_vertices(&self) -> HashMap<&str, Vec<&Edge>> {
-        let mut result = HashMap::<_, Vec<&Edge>>::new();
+        let mut result = HashMap::<_, Vec<&Edge>>::with_capacity(self.edges.len());
         for edge in &self.edges {
             result.entry(edge.to.as_str()).or_default().push(edge);
         }
@@ -114,7 +114,7 @@ fn find_root(graph: &Graph<String, String, Directed>) -> syn::Result<NodeIndex> 
         0 => {
             Err(syn::Error::new(
                 Span::call_site(),
-                "Expected at least one root node, found none.",
+                "Couldn't find the root node of this graph.",
             ))
         }
         1 => Ok(nodes[0]),
