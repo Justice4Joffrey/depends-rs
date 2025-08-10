@@ -50,7 +50,6 @@ use super::multiple_dependencies::Multiply;
 use super::simple_value::Square;
 use depends::test_utils::{ext_reset_node_id};
 use depends::{
-    DiagnosticVisitor,
     graphviz::GraphvizVisitor, *
 };
 use std::rc::Rc;
