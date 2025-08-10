@@ -8,7 +8,7 @@ use crate::execution::Identifiable;
 pub type HashBrownVisitor = HashSet<usize>;
 
 impl Visitor for HashBrownVisitor {
-    type Hasher = ahash::AHasher;
+    type Hasher = foldhash::fast::FoldHasher;
 
     fn visit<N>(&mut self, node: &N) -> bool
     where
@@ -26,7 +26,7 @@ impl Visitor for HashBrownVisitor {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use serial_test::serial;
 

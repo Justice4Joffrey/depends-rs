@@ -37,8 +37,8 @@ fn derive_dependencies_inner(input: TokenStream) -> syn::Result<TokenStream> {
     // _could_ support them.
     block_generics(&generics)?;
     let name = ident.to_string();
-    let ref_ident = Ident::new(format!("{}Ref", name).as_str(), Span::call_site());
-    let dep_name = format!("{}Dep", name);
+    let ref_ident = Ident::new(format!("{name}Ref").as_str(), Span::call_site());
+    let dep_name = format!("{name}Dep");
     let dep_ident = Ident::new(&dep_name, Span::call_site());
     let fields = if let Fields::Named(f) = fields {
         f.named

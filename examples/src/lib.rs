@@ -6,6 +6,7 @@ pub mod models;
 
 mod comments;
 mod comments_to_posts;
+#[cfg(not(miri))]
 mod docs;
 mod friends;
 mod likes;

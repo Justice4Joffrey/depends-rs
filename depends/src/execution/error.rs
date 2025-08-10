@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn test_resolve_result() {
         let res = Ok::<_, ResolveError>(());
-        assert_eq!(format!("{:?}", res), "Ok(())");
+        assert_eq!(format!("{res:?}"), "Ok(())");
     }
 
     #[test]
@@ -98,10 +98,10 @@ mod tests {
                 let err: ResolveError = err.into();
                 assert!(matches!(err, ResolveError::BorrowError(_)));
                 assert_eq!(
-                    format!("{:?}", err),
+                    format!("{err:?}"),
                     "BorrowError(BorrowMutError(BorrowMutError))"
                 );
-                assert_eq!(format!("{}", err), "borrow mut error");
+                assert_eq!(format!("{err}"), "borrow mut error");
             } else {
                 panic!("expected borrow mut error");
             };
@@ -109,10 +109,10 @@ mod tests {
                 let err: ResolveError = e.into();
                 assert!(matches!(err, ResolveError::BorrowError(_)));
                 assert_eq!(
-                    format!("{:?}", err),
+                    format!("{err:?}"),
                     "BorrowError(BorrowMutError(BorrowMutError))"
                 );
-                assert_eq!(format!("{}", err), "borrow mut error");
+                assert_eq!(format!("{err}"), "borrow mut error");
             } else {
                 panic!("expected borrow mut error");
             };
@@ -123,22 +123,16 @@ mod tests {
                 let err: AnyBorrowError = e.into();
                 let err: ResolveError = err.into();
                 assert!(matches!(err, ResolveError::BorrowError(_)));
-                assert_eq!(
-                    format!("{:?}", err),
-                    "BorrowError(BorrowError(BorrowError))"
-                );
-                assert_eq!(format!("{}", err), "borrow error");
+                assert_eq!(format!("{err:?}"), "BorrowError(BorrowError(BorrowError))");
+                assert_eq!(format!("{err}"), "borrow error");
             } else {
                 panic!("expected borrow error");
             };
             if let Err(e) = refcell.try_borrow() {
                 let err: ResolveError = e.into();
                 assert!(matches!(err, ResolveError::BorrowError(_)));
-                assert_eq!(
-                    format!("{:?}", err),
-                    "BorrowError(BorrowError(BorrowError))"
-                );
-                assert_eq!(format!("{}", err), "borrow error");
+                assert_eq!(format!("{err:?}"), "BorrowError(BorrowError(BorrowError))");
+                assert_eq!(format!("{err}"), "borrow error");
             } else {
                 panic!("expected borrow error");
             };
@@ -146,8 +140,8 @@ mod tests {
         let err = EarlyExit::new("test");
         let err: ResolveError = err.into();
         assert!(matches!(err, ResolveError::EarlyExit(_)));
-        assert_eq!(format!("{:?}", err), r#"EarlyExit(EarlyExit("test"))"#);
-        assert_eq!(format!("{}", err), "early exit: test");
+        assert_eq!(format!("{err:?}"), r#"EarlyExit(EarlyExit("test"))"#);
+        assert_eq!(format!("{err}"), "early exit: test");
     }
     #[test]
     fn test_any_borrow_error() {
@@ -157,8 +151,8 @@ mod tests {
             if let Err(e) = refcell.try_borrow_mut() {
                 let err: AnyBorrowError = e.into();
                 assert!(matches!(err, AnyBorrowError::BorrowMutError(_)));
-                assert_eq!(format!("{:?}", err), "BorrowMutError(BorrowMutError)");
-                assert_eq!(format!("{}", err), "borrow mut error");
+                assert_eq!(format!("{err:?}"), "BorrowMutError(BorrowMutError)");
+                assert_eq!(format!("{err}"), "borrow mut error");
             };
         }
         {
@@ -166,8 +160,8 @@ mod tests {
             if let Err(e) = refcell.try_borrow() {
                 let err: AnyBorrowError = e.into();
                 assert!(matches!(err, AnyBorrowError::BorrowError(_)));
-                assert_eq!(format!("{:?}", err), "BorrowError(BorrowError)");
-                assert_eq!(format!("{}", err), "borrow error");
+                assert_eq!(format!("{err:?}"), "BorrowError(BorrowError)");
+                assert_eq!(format!("{err}"), "borrow error");
             };
         }
     }
@@ -180,7 +174,7 @@ mod tests {
         assert_eq!(err.0, Cow::Borrowed("exit"));
         let err = EarlyExit::from(String::from("see ya"));
         assert_eq!(err.0, Cow::<'static, str>::Owned(String::from("see ya")));
-        assert_eq!(format!("{}", err), "see ya");
-        assert_eq!(format!("{:?}", err), r#"EarlyExit("see ya")"#);
+        assert_eq!(format!("{err}"), "see ya");
+        assert_eq!(format!("{err:?}"), r#"EarlyExit("see ya")"#);
     }
 }

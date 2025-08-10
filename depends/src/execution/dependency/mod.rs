@@ -61,7 +61,7 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use std::rc::Rc;
 
@@ -102,7 +102,7 @@ Dependency {
     },
 }"#
             .trim(),
-            format!("{:#?}", dependency)
+            format!("{dependency:#?}")
         );
         let mut visitor = HashSetVisitor::new();
         {

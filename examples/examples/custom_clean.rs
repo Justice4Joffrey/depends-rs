@@ -97,7 +97,7 @@ fn main() {
     let mut visitor = HashSet::<usize>::new();
     for i in 0..=10 {
         println!("------------");
-        println!("Iteration {}", i);
+        println!("Iteration {i}");
         // update the sequences
         sequence.update(i).unwrap();
         efficient_sequence.update(i).unwrap();

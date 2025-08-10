@@ -22,6 +22,6 @@ pub struct GraphvizGraph {
     pub name: Ident,
     /// All input nodes
     pub inputs: Vec<NodeDef>,
-    /// All non-root derived nodes
+    /// All derived nodes, including root
     pub derived: Vec<DerivedNodeDef>,
 }

@@ -54,7 +54,7 @@ impl PostScoresQuery {
     fn get_post_id_mut(&mut self, post_id: i64) -> Result<&mut PostScore, EarlyExit> {
         self.post_scores
             .get_mut(&post_id)
-            .ok_or_else(|| EarlyExit::new(format!("No score found for post id {}", post_id)))
+            .ok_or_else(|| EarlyExit::new(format!("No score found for post id {post_id}")))
     }
 
     fn update_post_score(&mut self, post_id: i64, score: u32) -> Result<bool, EarlyExit> {

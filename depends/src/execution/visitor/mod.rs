@@ -96,15 +96,15 @@ impl Visitor for DiagnosticVisitor {
         self.recalculated.clear();
     }
 
-    fn hasher(&self) -> Self::Hasher {
-        <HashSetVisitor as Visitor>::hasher(&self.visitor)
-    }
-
     fn notify_recalculated<N>(&mut self, node: &N)
     where
         N: Identifiable,
     {
         self.recalculated.insert(node.id());
+    }
+
+    fn hasher(&self) -> Self::Hasher {
+        <HashSetVisitor as Visitor>::hasher(&self.visitor)
     }
 }
 

@@ -100,7 +100,7 @@ mod tests {
         let mut state = NodeState::new(123_i32);
         assert_eq!(
             "NodeState { node_hash: NotHashed, value: 123 }",
-            format!("{:?}", state)
+            format!("{state:?}")
         );
         assert_eq!(<NodeState<i32> as Named>::name(), "i32");
         let hasher = &mut std::collections::hash_map::DefaultHasher::new();

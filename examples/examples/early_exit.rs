@@ -62,7 +62,7 @@ impl UpdateDerived<DepRef<'_, OpenOrders>, CheckRiskLimit> for RiskLimit {
     fn update(&mut self, value: DepRef<'_, OpenOrders>) -> Result<(), EarlyExit> {
         let orders = value.value.len();
         if orders >= self.max_orders {
-            Err(EarlyExit::new(format!("Risk limit exceeded ({})", orders)))
+            Err(EarlyExit::new(format!("Risk limit exceeded ({orders})")))
         } else {
             Ok(())
         }
@@ -136,17 +136,17 @@ fn main() {
     let mut visitor = HashSet::<usize>::new();
     for i in 0..=10 {
         println!("------------");
-        println!("Iteration {}", i);
+        println!("Iteration {i}");
         // Resolve the graph.
         let decision = match decision.resolve_root(&mut visitor) {
             Ok(order) => order.value.unwrap(),
             Err(ResolveError::EarlyExit(e)) => {
-                println!("Early exit: {}, popping order", e);
+                println!("Early exit: {e}, popping order");
                 OpenOrdersOperation::Cancel
             }
             _ => panic!("Unexpected error"),
         };
-        println!("Decision: {:?}", decision);
+        println!("Decision: {decision:?}");
         // Update the graph
         open_orders.update(decision).unwrap();
         println!("Current orders: {:?}", open_orders.value().unwrap().value);

@@ -235,9 +235,9 @@ impl GraphvizVisitor {
                 if let Some(op) = n.operation {
                     let class = n
                         .dependency
-                        .map(|d| format!(", class=\"{}\"", d))
+                        .map(|d| format!(", class=\"{d}\""))
                         .unwrap_or_default();
-                    let edge_label = format!("[label=\"{}\"{}]", op, class);
+                    let edge_label = format!("[label=\"{op}\"{class}]");
                     n.edges.iter().for_each(|c| {
                         lines.push(format!(
                             "  {} -> {} {};",
