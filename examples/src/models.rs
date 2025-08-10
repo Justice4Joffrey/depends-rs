@@ -77,7 +77,7 @@ impl TryFrom<StringRecord> for Update {
             type_str => {
                 Err(Error::new(
                     ErrorKind::InvalidData,
-                    format!("Unknown type string {}", type_str),
+                    format!("Unknown type string {type_str}"),
                 ))?
             }
         })

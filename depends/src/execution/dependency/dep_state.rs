@@ -19,7 +19,7 @@ mod tests {
     fn test_dependency_state_derives() {
         let state = DependencyState::Dirty;
         assert_eq!(state.clone(), state);
-        assert_eq!("Dirty", format!("{:?}", state));
+        assert_eq!("Dirty", format!("{state:?}"));
         let hasher = &mut std::collections::hash_map::DefaultHasher::new();
         state.hash(hasher);
         assert_eq!(hasher.finish(), 13646096770106105413);

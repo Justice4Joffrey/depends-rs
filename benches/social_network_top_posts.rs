@@ -91,9 +91,7 @@ impl InputBatch {
         let likes = read_csv_file(dir.join("csv-likes-initial.csv"), '|')?;
         let mut updates = Vec::new();
         for update in 1..=20 {
-            updates.push(read_csv_update(
-                dir.join(format!("change{:02}.csv", update)),
-            )?);
+            updates.push(read_csv_update(dir.join(format!("change{update:02}.csv")))?);
         }
         // Reverse the updates so we can pop them off the end.
         updates.reverse();

@@ -54,6 +54,6 @@ mod tests {
     fn test_node_hash_derives() {
         let hash = NodeHash::Hashed(420);
         assert_eq!(hash.clone(), hash);
-        assert_eq!("Hashed(420)", format!("{:?}", hash));
+        assert_eq!("Hashed(420)", format!("{hash:?}"));
     }
 }

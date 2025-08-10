@@ -37,7 +37,7 @@ impl CommentsToPosts {
         self.comments_to_posts
             .get(&comment_id)
             .cloned()
-            .ok_or_else(|| EarlyExit::new(format!("No post found for comment id {}", comment_id)))
+            .ok_or_else(|| EarlyExit::new(format!("No post found for comment id {comment_id}")))
     }
 }
 

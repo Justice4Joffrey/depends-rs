@@ -102,7 +102,7 @@ Dependency {
     },
 }"#
             .trim(),
-            format!("{:#?}", dependency)
+            format!("{dependency:#?}")
         );
         let mut visitor = HashSetVisitor::new();
         {

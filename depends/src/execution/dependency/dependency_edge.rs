@@ -49,7 +49,7 @@ mod tests {
         let mut dep_edge = DependencyEdge::new(DependencyState::Dirty, 123_i32);
         assert_eq!(
             "DependencyEdge { state: Dirty, data: 123, phantom: PhantomData<&i32> }",
-            format!("{:?}", dep_edge)
+            format!("{dep_edge:?}")
         );
         assert!(dep_edge.is_dirty());
         dep_edge.state = DependencyState::Clean;

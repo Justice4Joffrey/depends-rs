@@ -65,7 +65,7 @@ TestData {
     recent: [],
 }"#
         .trim(),
-        format!("{:#?}", data)
+        format!("{data:#?}")
     );
     data.update_mut(420);
     assert_eq!(

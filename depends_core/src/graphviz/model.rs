@@ -285,12 +285,11 @@ impl TryFrom<ParsedGraphvizModel> for GraphvizGraph {
                             dependency_type,
                         });
                     } else {
-                        let values = format!("{:?}", set);
+                        let values = format!("{set:?}");
                         return Err(syn::Error::new(
                             value.vertices[name].span,
                             format!(
-                                "Multiple values for `label` and `class` on edges to node: {}.",
-                                values
+                                "Multiple values for `label` and `class` on edges to node: {values}."
                             ),
                         ));
                     }

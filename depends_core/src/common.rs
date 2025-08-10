@@ -5,7 +5,7 @@ pub const CUSTOM_CLEAN: &str = "custom_clean";
 pub const UNHASHABLE: &str = "unhashable";
 
 pub fn unexpected_attribute(attr: &str, span: Span) -> syn::Error {
-    syn::Error::new(span, format!("Unexpected attribute \"{:?}\"", attr))
+    syn::Error::new(span, format!("Unexpected attribute \"{attr:?}\""))
 }
 
 pub fn duplicate_attribute(span: Span) -> syn::Error {
