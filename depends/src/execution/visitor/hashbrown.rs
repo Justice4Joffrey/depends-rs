@@ -26,7 +26,7 @@ impl Visitor for HashBrownVisitor {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use serial_test::serial;
 
